@@ -95,6 +95,13 @@ body {
     font-family: Inter, sans-serif;
 }
 
+/* Profile picture shadow effect */
+.profile-shadow {
+    box-shadow: 0 0 0 8px rgba(0, 0, 0, 0.3), 
+                0 0 0 16px rgba(0, 0, 0, 0.1),
+                0 0 30px rgba(0, 0, 0, 0.5);
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     .subheading {
