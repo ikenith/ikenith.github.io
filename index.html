@@ -22,17 +22,16 @@
     <div class="max-w-6xl mx-auto flex justify-between items-center">
       <!-- Site Title -->
       <div class="flex items-center cursor-pointer" onclick="window.location.href='index.html'">
-        <img src="style/logo.svg" alt="The Roots Logo" class="h-10 w-10 mr-3" />
-        <span class="text-xl font-bold text-white">The Roots</span>
+        <img src="style/logo.svg" alt="The Roots Logo" class="h-10 w-10" />
       </div>
       
       <!-- Writings Link -->
       <div class="relative group">
-        <a href="#" class="text-white font-medium hover:text-[#0ea5e9] transition-colors text-lg">
+        <a href="#writings" class="text-white font-medium hover:text-gray-300 transition-colors text-lg">
           Writings
         </a>
-        <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-3 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-gray-700">
-          Read Kamal's thoughts & reflections
+        <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-gray-300 text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-gray-600 shadow-lg">
+          Explore Kamal's thoughts & reflections
         </div>
       </div>
     </div>
@@ -70,7 +69,7 @@
       <!-- Profile Picture -->
       <div class="w-full md:w-1/3 flex justify-center">
         <div class="w-56 h-56 md:w-64 md:h-64 overflow-hidden rounded-lg shadow-lg">
-          <img src="style/me.jpeg" alt="Kamal" class="w-full h-full object-cover" />
+          <img src="style/me.jpg" alt="Kamal" class="w-full h-full object-cover" />
         </div>
       </div>
       
@@ -83,11 +82,12 @@
             This space is where I document my journey through thoughts, ideas, and discoveries.
           </p>
           <p>
-           I write because I love to write. And when people read my texts, it makes me want to write even more.
+            I believe in the power of knowledge sharing and the beauty of connecting ideas across disciplines. 
+            Through writing, I aim to untangle complex concepts and share insights that might resonate with others on similar paths.
           </p>
           <p>
-            I like being around people, observing them, learning from them, understanding them in small ways.
-            I also love nature — I believe in it. I believe in The Origin Principle.
+            When I'm not coding or writing, you'll find me reading, experimenting with new technologies, 
+            or simply observing the world with a curious eye.
           </p>
         </div>
       </div>
@@ -95,7 +95,7 @@
   </section>
 
   <!-- Posts list -->
-  <main class="pb-12">
+  <main class="pb-12" id="writings">
     <div class="max-w-4xl mx-auto px-6">
       <h2 class="text-2xl font-bold mb-8 text-center border-b border-gray-800 pb-4">Latest Writings</h2>
       <div id="posts" class="post-list"></div>
@@ -126,7 +126,7 @@
       const postsContainer = document.getElementById("posts");
       postsContainer.innerHTML = posts.length
         ? posts.map(post => `
-          <div class="post-card mb-8 p-6 border border-gray-800 rounded-lg hover:border-[#0ea5e9] transition-colors">
+          <div class="post-card mb-8 p-6 border border-gray-800 rounded-lg hover:border-gray-500 transition-colors">
             ${post.image ? `
               <div class="post-image-wrapper mb-4">
                 <img src="${post.image}" alt="Post image" class="post-image w-full h-48 object-cover rounded">
@@ -134,7 +134,7 @@
             ` : ""}
             <a class="post-title-link flex items-center gap-2 group" href="post.html?file=${encodeURIComponent(post.path)}">
               <span class="text-xl font-semibold">${post.title}</span>
-              <span class="text-xl text-[#0ea5e9] group-hover:translate-x-1 transition-transform">&rarr;</span>
+              <span class="text-xl text-gray-400 group-hover:text-gray-300 group-hover:translate-x-1 transition-all">&rarr;</span>
             </a>
             <div class="post-date text-gray-400 mt-2">${post.date}</div>
           </div>
@@ -198,12 +198,12 @@
   <!-- Footer -->
   <footer class="w-full mt-12 pb-6 flex flex-col items-center text-gray-400 text-sm">
     <div>
-      &copy; 2025 <span class="font-semibold text-[#0ea5e9]">The Roots</span> &mdash; Crafted with <span
-        class="text-red-400">&#9829;</span> and curiosity.
+      &copy; 2025 <span class="font-semibold text-gray-300">The Roots</span> &mdash; Crafted with <span
+        class="text-gray-500">&#9829;</span> and curiosity.
     </div>
     <div class="mt-1">
       <a href="https://github.com/ikenith/ikenith.github.io" target="_blank"
-        class="underline hover:text-[#0ea5e9]">GitHub</a>
+        class="underline hover:text-gray-300">GitHub</a>
       &middot;
       <span>Minimalist, dark, and open source.</span>
     </div>
