@@ -1,0 +1,571 @@
+---
+title: "test3"
+date: "2025-11-14"
+image: "https://raw.githubusercontent.com/ikenith/ikenith.github.io/main/images/test3.jpg"
+---
+`<!doctype html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Writings | The Roots</title>
+  <link rel="icon" type="image/svg+xml" href="style/logo.svg">
+
+  <!-- Fonts & Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    img {
+      background-color: transparent !important;
+    }
+    
+    .transparent-bg {
+      background: transparent !important;
+    }
+    
+    .post-card {
+      transition: all 0.3s ease;
+      border-radius: 1.5rem;
+    }
+    
+    .post-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Search bar styles */
+    .search-container {
+      position: relative;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .search-input {
+      background: #18181b;
+      border: 1px solid #2d2d35;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border-radius: 1rem;
+      color: white;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6b7280;
+    }
+
+    /* Timeline styles - FIXED */
+    .timeline {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 30px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #0ea5e9, #7e22ce);
+      opacity: 0.3;
+    }
+
+    .timeline-year {
+      position: relative;
+      margin-bottom: 3rem;
+      padding-left: 80px; /* Add padding for year marker */
+    }
+
+    .year-marker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 60px;
+      height: 60px;
+      background: #0a0a0f;
+      border: 2px solid #0ea5e9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      z-index: 2;
+    }
+
+    .year-content {
+      /* Remove margin-left since we're using padding on parent */
+    }
+
+    .month-group {
+      margin-bottom: 2rem;
+      position: relative;
+      padding-left: 40px; /* Space for month marker */
+    }
+
+    .month-marker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 40px;
+      height: 40px;
+      background: #0a0a0f;
+      border: 2px solid #7e22ce;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .day-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .day-marker {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #9ca3af;
+      margin-bottom: 1rem;
+      padding-left: 1rem;
+      border-left: 2px solid #374151;
+    }
+
+    .day-posts {
+      /* Posts container for each day */
+    }
+
+    /* Post card centered styles */
+    .post-card-centered {
+      background: #18181b;
+      border: 1px solid #2d2d35;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .post-card-centered:hover {
+      border-color: #0ea5e9;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .post-image-full {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .post-title-centered {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: white;
+    }
+
+    .post-date-centered {
+      text-align: center;
+      color: #9ca3af;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    /* No results message */
+    .no-results {
+      text-align: center;
+      color: #6b7280;
+      padding: 3rem;
+      font-style: italic;
+    }
+
+    /* Active search */
+    .search-active {
+      border-color: #0ea5e9;
+      background: #1e1e24;
+    }
+
+    @media (max-width: 768px) {
+      .timeline::before {
+        left: 20px;
+      }
+
+      .timeline-year {
+        padding-left: 60px;
+      }
+
+      .year-marker {
+        width: 50px;
+        height: 50px;
+        font-size: 0.8rem;
+      }
+
+      .month-group {
+        padding-left: 30px;
+      }
+
+      .month-marker {
+        width: 35px;
+        height: 35px;
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-black text-white">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm py-4 px-6">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <!-- Site Title -->
+      <div class="flex items-center cursor-pointer transparent-bg" onclick="window.location.href='index.html'">
+        <img src="style/logo.svg" alt="The Roots Logo" class="h-10 w-10 transparent-bg" />
+      </div>
+      
+      <!-- Search Button -->
+      <div class="relative group transparent-bg">
+        <button id="searchToggle" class="text-white font-medium hover:text-gray-300 transition-colors text-lg bg-transparent border-none cursor-pointer">
+          Search
+        </button>
+        <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-gray-300 text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-gray-600 shadow-lg">
+          Search through writings
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <header class="pt-24 pb-8 text-center">
+    <h1 class="text-4xl font-bold mb-4">All Writings</h1>
+    <p class="text-gray-400 max-w-2xl mx-auto px-6 mb-8">
+      A collection of thoughts, ideas, and discoveries exploring technology, philosophy, and creativity.
+    </p>
+    
+    <!-- Search Bar -->
+    <div id="searchContainer" class="search-container mb-8 hidden">
+      <div class="search-icon">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
+      <input 
+        type="text" 
+        id="searchInput" 
+        class="search-input" 
+        placeholder="Search writings..."
+      >
+    </div>
+  </header>
+
+  <!-- All Posts with Timeline -->
+  <main class="pb-12 transparent-bg">
+    <div class="max-w-6xl mx-auto px-6 transparent-bg">
+      <div id="timeline" class="timeline transparent-bg">
+        <div id="posts" class="post-list transparent-bg"></div>
+      </div>
+      <div id="noResults" class="no-results hidden">
+        No writings found matching your search.
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- CONFIG ---
+    const repo = "ikenith/ikenith.github.io";
+    const branch = "main";
+    const CACHE_KEY = "cached_posts_v1";
+    const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
+
+    let allPosts = [];
+    let filteredPosts = [];
+
+    // --- HELPERS ---
+    function parseFrontmatter(md) {
+      const match = md.match(/^---\s*([\s\S]*?)\s*---/);
+      if (!match) return {};
+      return match[1].split("\n").reduce((meta, line) => {
+        const [key, ...rest] = line.split(":");
+        if (key && rest.length) {
+          meta[key.trim()] = rest.join(":").trim().replace(/^"|"$/g, "");
+        }
+        return meta;
+      }, {});
+    }
+
+    function groupPostsByYearMonthDay(posts) {
+      const grouped = {};
+      
+      posts.forEach(post => {
+        const date = new Date(post.date);
+        const year = date.getFullYear();
+        const month = date.toLocaleString('default', { month: 'long' });
+        const day = date.getDate();
+        const yearMonth = `${year}-${date.getMonth()}`;
+        const yearMonthDay = `${year}-${date.getMonth()}-${day}`;
+        
+        if (!grouped[year]) {
+          grouped[year] = {};
+        }
+        if (!grouped[year][yearMonth]) {
+          grouped[year][yearMonth] = {
+            month: month,
+            days: {}
+          };
+        }
+        if (!grouped[year][yearMonth].days[yearMonthDay]) {
+          grouped[year][yearMonth].days[yearMonthDay] = {
+            day: day,
+            posts: []
+          };
+        }
+        grouped[year][yearMonth].days[yearMonthDay].posts.push(post);
+      });
+      
+      return grouped;
+    }
+
+    function formatDateDisplay(dateStr) {
+      const date = new Date(dateStr);
+      const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long' 
+      };
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    function renderTimeline(posts) {
+      const timelineContainer = document.getElementById('timeline');
+      const noResults = document.getElementById('noResults');
+      
+      if (posts.length === 0) {
+        timelineContainer.classList.add('hidden');
+        noResults.classList.remove('hidden');
+        return;
+      }
+      
+      timelineContainer.classList.remove('hidden');
+      noResults.classList.add('hidden');
+      
+      const grouped = groupPostsByYearMonthDay(posts);
+      const years = Object.keys(grouped).sort((a, b) => b - a);
+      
+      let timelineHTML = '';
+      
+      years.forEach(year => {
+        timelineHTML += `
+          <div class="timeline-year">
+            <div class="year-marker">${year}</div>
+            <div class="year-content">
+        `;
+        
+        const months = Object.keys(grouped[year]).sort((a, b) => b.split('-')[1] - a.split('-')[1]);
+        
+        months.forEach(monthKey => {
+          const monthData = grouped[year][monthKey];
+          timelineHTML += `
+            <div class="month-group">
+              <div class="month-marker">${monthData.month.slice(0, 3)}</div>
+              <div class="month-posts">
+          `;
+          
+          // Sort days in descending order (newest first)
+          const days = Object.keys(monthData.days).sort((a, b) => {
+            const dayA = parseInt(a.split('-')[2]);
+            const dayB = parseInt(b.split('-')[2]);
+            return dayB - dayA;
+          });
+          
+          days.forEach(dayKey => {
+            const dayData = monthData.days[dayKey];
+            timelineHTML += `
+              <div class="day-group">
+                <div class="day-marker">${formatDateDisplay(posts.find(p => {
+                  const postDate = new Date(p.date);
+                  return postDate.getDate() === dayData.day && 
+                         postDate.getMonth() === parseInt(monthKey.split('-')[1]) &&
+                         postDate.getFullYear() === parseInt(year);
+                })?.date || '')}</div>
+                <div class="day-posts">
+            `;
+            
+            // Sort posts by time if multiple posts on same day
+            dayData.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            dayData.posts.forEach(post => {
+              timelineHTML += `
+                <div class="post-card-centered transparent-bg">
+                  ${post.image ? `
+                    <div class="post-image-wrapper transparent-bg">
+                      <img src="${post.image}" alt="Post image" class="post-image-full transparent-bg" />
+                    </div>
+                  ` : ""}
+                  <a class="post-title-link block transparent-bg" href="post.html?file=${encodeURIComponent(post.path)}">
+                    <h2 class="post-title-centered">${post.title}</h2>
+                  </a>
+                  <div class="post-date-centered">${post.date}</div>
+                  <div class="text-center mt-4">
+                    <a href="post.html?file=${encodeURIComponent(post.path)}" 
+                       class="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
+                      <span>Read more</span>
+                      <span class="text-lg transition-transform group-hover:translate-x-1">&rarr;</span>
+                    </a>
+                  </div>
+                </div>
+              `;
+            });
+            
+            timelineHTML += `
+                </div>
+              </div>
+            `;
+          });
+          
+          timelineHTML += `
+              </div>
+            </div>
+          `;
+        });
+        
+        timelineHTML += `
+            </div>
+          </div>
+        `;
+      });
+      
+      timelineContainer.innerHTML = timelineHTML;
+    }
+
+    function filterPosts(query) {
+      if (!query.trim()) {
+        filteredPosts = [...allPosts];
+      } else {
+        const lowerQuery = query.toLowerCase();
+        filteredPosts = allPosts.filter(post => 
+          post.title.toLowerCase().includes(lowerQuery) ||
+          (post.date && post.date.toLowerCase().includes(lowerQuery))
+        );
+      }
+      renderTimeline(filteredPosts);
+    }
+
+    async function fetchPostsFromGitHub() {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/posts?ref=${branch}`);
+      if (!res.ok) throw new Error("GitHub API request failed: " + res.status);
+      const files = await res.json();
+      const mdFiles = files.filter(f => f.name.endsWith(".md"));
+
+      const posts = (await Promise.all(mdFiles.map(async file => {
+        try {
+          const fileRes = await fetch(`https://api.github.com/repos/${repo}/contents/${file.path}?ref=${branch}`);
+          if (!fileRes.ok) return null;
+          const data = await fileRes.json();
+          const md = atob(data.content.replace(/\n/g, ""));
+          const meta = parseFrontmatter(md);
+          return {
+            title: meta.title || file.name.replace(".md", ""),
+            date: meta.date || "",
+            image: meta.image || "",
+            path: file.path
+          };
+        } catch {
+          return null;
+        }
+      }))).filter(Boolean);
+
+      posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      return posts;
+    }
+
+    async function loadPosts() {
+      const postsContainer = document.getElementById("posts");
+      postsContainer.innerHTML = `<div class="text-center text-gray-400 py-8">Loading writings...</div>`;
+
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { posts, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          allPosts = posts;
+          filteredPosts = [...posts];
+          renderTimeline(posts);
+          return;
+        }
+      }
+
+      try {
+        const posts = await fetchPostsFromGitHub();
+        allPosts = posts;
+        filteredPosts = [...posts];
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, timestamp: Date.now() }));
+        renderTimeline(posts);
+      } catch (err) {
+        postsContainer.innerHTML = `<div class="text-center text-red-400 py-8">Failed to load writings.</div>`;
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      loadPosts();
+      
+      // Search functionality
+      const searchToggle = document.getElementById('searchToggle');
+      const searchContainer = document.getElementById('searchContainer');
+      const searchInput = document.getElementById('searchInput');
+      
+      searchToggle.addEventListener('click', function() {
+        searchContainer.classList.toggle('hidden');
+        if (!searchContainer.classList.contains('hidden')) {
+          searchInput.focus();
+        }
+      });
+      
+      searchInput.addEventListener('input', function(e) {
+        filterPosts(e.target.value);
+      });
+      
+      // Close search when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!searchContainer.contains(e.target) && !searchToggle.contains(e.target)) {
+          searchContainer.classList.add('hidden');
+        }
+      });
+    });
+  </script>
+
+  <!-- Footer -->
+  <footer class="w-full mt-12 pb-6 flex flex-col items-center text-gray-400 text-sm transparent-bg">
+    <div>
+      &copy; 2025 <span class="font-semibold text-gray-300">The Roots</span> &mdash; Crafted with <span
+        class="text-gray-500">&#9829;</span> and curiosity.
+    </div>
+    <div class="mt-1">
+      <a href="https://github.com/ikenith/ikenith.github.io" target="_blank"
+        class="underline hover:text-gray-300">GitHub</a>
+      &middot;
+      <span>The silent corner of the internet...</span>
+    </div>
+  </footer>
+</body>
+
+</html>`
