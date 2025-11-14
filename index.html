@@ -17,11 +17,24 @@
 </head>
 
 <body>
-  <!-- Floating logo (top right) -->
-  <div class="fixed top-6 right-8 z-50 flex flex-col items-center cursor-pointer"
-    onclick="window.location.href='index.html'">
-    <img src="style/logo.svg" alt="The Roots Logo" class="h-14 w-14 shadow-lg" />
-    <!-- <span class="mt-1 text-xs text-[#bcbcbc] tracking-wide">Root Browser</span> -->
+  <!-- Floating logo and blog link (top right) -->
+  <div class="fixed top-6 right-8 z-50 flex flex-col items-center">
+    <div class="flex items-center space-x-4">
+      <!-- Blog Link -->
+      <div class="relative group">
+        <a href="index.html" class="text-white font-semibold text-lg hover:text-[#0ea5e9] transition-colors">
+          The Root's
+        </a>
+        <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          Read Kamal's Thoughts & Reflections
+        </div>
+      </div>
+      
+      <!-- Logo -->
+      <div class="cursor-pointer" onclick="window.location.href='index.html'">
+        <img src="style/logo.svg" alt="The Roots Logo" class="h-14 w-14 shadow-lg" />
+      </div>
+    </div>
   </div>
 
   <!-- Main header -->
@@ -51,9 +64,41 @@
     <div class="subheading">Thoughts, Notes, and Research</div>
   </header>
 
+  <!-- About Section -->
+  <section class="max-w-4xl mx-auto px-6 py-12">
+    <div class="flex flex-col md:flex-row items-center gap-8">
+      <!-- Profile Picture -->
+      <div class="md:w-1/3 flex justify-center">
+        <div class="relative w-64 h-64 overflow-hidden rounded-lg border-2 border-[#0ea5e9] shadow-lg">
+          <img src="style/me.jpg" alt="Kamal" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" />
+        </div>
+      </div>
+      
+      <!-- About Text -->
+      <div class="md:w-2/3 text-white">
+        <h2 class="text-3xl font-bold mb-4 text-[#0ea5e9]">About Me</h2>
+        <p class="text-lg mb-4">
+          Hello! I'm Kamal, a curious mind exploring the intersections of technology, philosophy, and human creativity. 
+          This space is where I document my journey through thoughts, ideas, and discoveries.
+        </p>
+        <p class="text-lg mb-4">
+          I believe in the power of knowledge sharing and the beauty of connecting ideas across disciplines. 
+          Through writing, I aim to untangle complex concepts and share insights that might resonate with others on similar paths.
+        </p>
+        <p class="text-lg">
+          When I'm not coding or writing, you'll find me reading, experimenting with new technologies, 
+          or simply observing the world with a curious eye.
+        </p>
+      </div>
+    </div>
+  </section>
+
   <!-- Posts list -->
   <main>
-    <div id="posts" class="post-list"></div>
+    <div class="max-w-4xl mx-auto px-6">
+      <h2 class="text-2xl font-bold text-white mb-6 text-center">Latest Writings</h2>
+      <div id="posts" class="post-list"></div>
+    </div>
   </main>
 
   <script>
