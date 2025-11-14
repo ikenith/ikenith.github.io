@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Great Coffee Quest — Interactive Comedy (Dialogue Edition)</title>
+    <meta name="description"
+        content="A funny, dialogue‑driven choose‑your‑own‑adventure about getting coffee. Ultra‑dark neon UI with typewriter animation." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== Design Tokens ===== */
+        :root {
+            --bg: #000;
+            /* Pure black */
+            --bg-soft: #0b0b0b;
+            /* Cards */
+            --ink: #e8eef8;
+            /* Main text */
+            --muted: #a8b3c7;
+            /* Muted text */
+            --line: rgba(255, 255, 255, .08);
+            --glow-1: #00f5ff;
+            /* Neon cyan */
+            --glow-2: #ff6bff;
+            /* Neon magenta */
+            --success: #7dffa7;
+            /* Neon mint */
+            --danger: #ff8a8a;
+            /* Neon red */
+            --radius: 22px;
+            /* Extra curvy */
+            --shadow: 0 18px 60px rgba(0, 0, 0, .75), inset 0 1px 0 rgba(255, 255, 255, .02);
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: var(--bg);
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+            display: grid;
+            place-items: center;
+            padding: 28px;
+            background-image: radial-gradient(1000px 600px at 80% -20%, rgba(0, 245, 255, .07), transparent 60%),
+                radial-gradient(900px 500px at -20% 80%, rgba(255, 107, 255, .06), transparent 60%),
+                linear-gradient(180deg, #000, #000);
+            animation: drift 16s linear infinite alternate;
+        }
+
+        @keyframes drift {
+            0% {
+                background-position: 0 0, 0 0, 0 0
+            }
+
+            100% {
+                background-position: 30px -20px, -24px 18px, 0 0
+            }
+        }
+
+        .app {
+            width: min(960px, 100%);
+        }
+
+        /* Header */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 62px;
+            height: 62px;
+            border-radius: 22px;
+            position: relative;
+            isolation: isolate;
+            background: conic-gradient(from 210deg, var(--glow-1), var(--glow-2));
+            box-shadow: 0 0 40px rgba(0, 245, 255, .35), 0 0 50px rgba(255, 107, 255, .25);
+            display: grid;
+            place-items: center;
+        }
+
+        .logo::after {
+            content: "";
+            position: absolute;
+            inset: 2px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0));
+        }
+
+        .logo svg {
+            width: 64%;
+            height: 64%;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .5));
+        }
+
+        .title {
+            font-weight: 800;
+            letter-spacing: .3px;
+            font-size: clamp(22px, 4vw, 30px);
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        /* Card */
+        .card {
+            background: radial-gradient(120% 140% at -10% -20%, rgba(0, 245, 255, .08), transparent 40%), radial-gradient(120% 140% at 120% 120%, rgba(255, 107, 255, .08), transparent 40%), var(--bg-soft);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: clamp(20px, 4vw, 32px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Dialogue / Stage */
+        .stage {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 260px;
+        }
+
+        .scene-intro {
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: .2px;
+        }
+
+        .chat {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .line {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            opacity: 0;
+            transform: translateY(6px);
+            animation: fadeIn .35s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .who {
+            flex: 0 0 auto;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .5px;
+            color: var(--ink);
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .02));
+            box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .06);
+        }
+
+        .bubble {
+            position: relative;
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .02));
+            min-height: 24px;
+        }
+
+        .bubble .text {
+            white-space: pre-wrap;
+        }
+
+        .caret {
+            position: absolute;
+            width: 10px;
+            height: 14px;
+            right: 10px;
+            bottom: 8px;
+            border-right: 2px solid var(--ink);
+            animation: blink 1s step-end infinite;
+            opacity: .6;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0
+            }
+        }
+
+        .choices {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .btn {
+            --pad-x: 22px;
+            --pad-y: 13px;
+            appearance: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02));
+            color: var(--ink);
+            padding: var(--pad-y) var(--pad-x);
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .06), 0 10px 26px rgba(0, 0, 0, .45);
+            transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+            font-weight: 600;
+            letter-spacing: .2px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .03));
+            box-shadow: 0 0 0 6px rgba(0, 245, 255, .18);
+        }
+
+        .btn-ghost {
+            background: transparent;
+        }
+
+        .meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .status {
+            font-family: "JetBrains Mono", ui-monospace, Menlo, Monaco;
+            font-size: 12.5px;
+            color: var(--muted);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 22px;
+            color: var(--muted);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .a {
+            color: var(--ink);
+            text-decoration: none;
+        }
+
+        .a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width:560px) {
+            .btn {
+                width: 100%;
+            }
+
+            .meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .who {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="app">
+        <header class="brand">
+            <div class="logo" aria-hidden="true">
+                <!-- Coffee cup icon -->
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
+                    aria-label="Coffee cup">
+                    <path d="M4 9h11a0 0 0 0 1 0 0v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9Z" stroke="white"
+                        stroke-opacity=".9" stroke-width="1.6" />
+                    <path d="M15 10h3a2 2 0 1 1 0 4h-2" stroke="white" stroke-opacity=".9" stroke-width="1.6" />
+                    <path d="M7 5s0 1 1 1 1-1 1-1M11 5s0 1 1 1 1-1 1-1" stroke="white" stroke-opacity=".9"
+                        stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+            </div>
+            <div>
+                <div class="title">The Great Coffee Quest</div>
+                <div class="subtitle">Dialogue Edition — ultra-dark neon with typewriter vibes.</div>
+            </div>
+        </header>
+
+        <section class="card" aria-live="polite">
+            <div class="stage" id="stage">
+                <div class="scene-intro" id="intro">Now playing… a very serious story about coffee, responsibility, and
+                    a cat that judges everyone.</div>
+                <div class="chat" id="chat" role="log" aria-live="polite" aria-relevant="additions"></div>
+            </div>
+            <div class="meta">
+                <div class="status" id="status">Loading beans…</div>
+                <div class="toolbar">
+                    <button class="btn btn-ghost" id="skip">Skip line ▶</button>
+                    <span class="hint">Press <kbd>Enter</kbd> to advance • <kbd>S</kbd> to skip</span>
+                </div>
+            </div>
+            <div class="choices" id="choices"></div>
+        </section>
+
+        <footer>
+            <div>© <span id="year"></span> Kamal — Brewed with ☕ and ✨</div>
+            <div>
+                <a class="a btn btn-ghost" href="https://x.com/kamalkrth" target="_blank"
+                    rel="noopener noreferrer">Follow on X</a>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // ===== Dialogue-driven scenes with typewriter effect =====
+        const scenes = {
+            wake: {
+                lines: [
+                    { who: 'You', text: '😴 Ugh… morning already? Why is gravity so aggressive today?' },
+                    { who: 'Alarm', text: '⏰ BEEP. Also: good morning! Also: hydrate! Also: pay taxes!' },
+                    { who: 'You', text: 'Please stop being three notifications in a trench coat.' },
+                    { who: 'Toaster', text: '🍞 Hi. We are out of bread. This was a courtesy announcement.' },
+                    { who: 'You', text: '…Why is the toaster talking?' },
+                    { who: 'Toaster', text: 'Because this is The Great Coffee Quest. Logic called in sick.' },
+                ],
+                choices: [
+                    { label: 'Check phone 📱', next: 'doomscroll' },
+                    { label: 'Get up like a hero 🦸', next: 'kitchen' },
+                ],
+                status: 'Step 1 of 3'
+            },
+            doomscroll: {
+                lines: [
+                    { who: 'You', text: 'Just a quick look at messages…' },
+                    { who: 'Phone', text: '🔔 You have 93 new notifications and a fresh existential crisis.' },
+                    { who: 'Narrator', text: 'You blink. It is now 3 PM. Your thumb ran a marathon.' },
+                ],
+                end: 'lose',
+                status: '💥 Coffee Chaos'
+            },
+            kitchen: {
+                lines: [
+                    { who: 'You', text: '🏃 Made it to the kitchen. Beans: present. Mug: present. Skills: questionable.' },
+                    { who: 'Fridge', text: '🧊 I contain mysteries. And also yesterday\'s onion.' },
+                    { who: 'Kettle', text: '🚰 I can boil. If someone remembers water.' },
+                ],
+                choices: [
+                    { label: 'Brew at home 🏠', next: 'brew' },
+                    { label: 'Go to café 🏃', next: 'cafe' },
+                ],
+                status: 'Step 2 of 3'
+            },
+            cafe: {
+                lines: [
+                    { who: 'Barista', text: '☕ Welcome! Today\'s specials: Hope, Patience, and Oat Milk.' },
+                    { who: 'Cat', text: '🐈 I guard the counter. Pay the toll: one head scratch.' },
+                    { who: 'You', text: 'I respect your authority, Sir Cat.' },
+                ],
+                choices: [
+                    { label: 'Order latte ☕', next: 'latte' },
+                    { label: 'Trip over cat 🐈', next: 'catfail' },
+                ],
+                status: 'Step 3 of 3'
+            },
+            latte: {
+                lines: [
+                    { who: 'Barista', text: 'One latte for our brave adventurer! With foam art: a heroic bean.' },
+                    { who: 'You', text: 'It tastes like hope with microfoam.' },
+                ],
+                end: 'win',
+                status: '✨ Victory Brew'
+            },
+            catfail: {
+                lines: [
+                    { who: 'Narrator', text: 'You trip. The cat sighs in several languages.' },
+                    { who: 'Cat', text: 'My Yelp review: “slippery human, would not pet again.”' },
+                ],
+                end: 'lose',
+                status: '💥 Coffee Chaos'
+            },
+            brew: {
+                lines: [
+                    { who: 'You', text: 'Beans: ground. Kettle: on. Confidence: unjustified but soaring.' },
+                    { who: 'Kettle', text: 'I am screaming politely (that\'s boiling).' },
+                    { who: 'You', text: 'Perfect pour incoming…' },
+                ],
+                choices: [
+                    { label: 'Perfect pour 🫗', next: 'sip' },
+                    { label: 'Spill beans 🙃', next: 'spill' },
+                ],
+                status: 'Step 3 of 3'
+            },
+            spill: {
+                lines: [
+                    { who: 'Narrator', text: 'Beans everywhere. The floor is now “single origin.”' },
+                    { who: 'You', text: 'Five second rule for beans? …No? Okay.' },
+                ],
+                end: 'lose',
+                status: '💥 Coffee Chaos'
+            },
+            sip: {
+                lines: [
+                    { who: 'You', text: 'First sip—perfection. I can hear colors and schedule meetings.' },
+                    { who: 'Narrator', text: 'You unlock +5 charisma and +12 focus. Productivity noises intensify.' },
+                ],
+                end: 'win',
+                status: '✨ Victory Brew'
+            },
+        };
+
+        const CH_SPEED = 22;            // ms per character
+        const LINE_PAUSE = 350;         // pause after each full line
+
+        const chat = document.getElementById('chat');
+        const choicesEl = document.getElementById('choices');
+        const statusEl = document.getElementById('status');
+        const yearEl = document.getElementById('year');
+        const skipBtn = document.getElementById('skip');
+
+        yearEl.textContent = new Date().getFullYear();
+
+        let typing = false, cancelTyping = false, currentScene = 'wake';
+
+        function mkLine(who) {
+            const row = document.createElement('div'); row.className = 'line';
+            const tag = document.createElement('div'); tag.className = 'who'; tag.textContent = who.toUpperCase();
+            const bubble = document.createElement('div'); bubble.className = 'bubble';
+            const text = document.createElement('div'); text.className = 'text';
+            const caret = document.createElement('div'); caret.className = 'caret';
+            bubble.appendChild(text); bubble.appendChild(caret);
+            row.appendChild(tag); row.appendChild(bubble);
+            chat.appendChild(row);
+            return { row, bubble, text, caret };
+        }
+
+        function scrollToBottom() { chat.parentElement?.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' }); }
+
+        async function typeText(el, str) {
+            typing = true; cancelTyping = false; el.textContent = '';
+            for (let i = 0; i < str.length; i++) {
+                if (cancelTyping) { el.textContent = str; break; }
+                el.textContent += str[i];
+                await new Promise(r => setTimeout(r, CH_SPEED));
+            }
+            typing = false;
+            await new Promise(r => setTimeout(r, LINE_PAUSE));
+        }
+
+        async function playScene(key) {
+            currentScene = key;
+            chat.innerHTML = '';
+            choicesEl.innerHTML = '';
+            const scene = scenes[key];
+            statusEl.textContent = scene.status || '';
+
+            for (const ln of scene.lines) {
+                const { text } = mkLine(ln.who);
+                await typeText(text, ln.text);
+                scrollToBottom();
+            }
+
+            if (scene.choices) {
+                showChoices(scene.choices);
+            } else if (scene.end) {
+                showEnding(scene.end);
+            }
+        }
+
+        function showChoices(choices) {
+            choicesEl.innerHTML = '';
+            for (const c of choices) {
+                const btn = document.createElement('button');
+                btn.className = 'btn'; btn.type = 'button'; btn.textContent = c.label; btn.addEventListener('click', () => playScene(c.next));
+                choicesEl.appendChild(btn);
+            }
+            choicesEl.firstElementChild?.focus();
+        }
+
+        function showEnding(type) {
+            const badge = document.createElement('span');
+            badge.className = 'who';
+            badge.textContent = type === 'win' ? '✔ COFFEE SECURED' : '✖ MISSION FAILED';
+            choicesEl.appendChild(badge);
+
+            const again = document.createElement('button'); again.className = 'btn'; again.textContent = 'Play again'; again.addEventListener('click', () => playScene('wake'));
+            const share = document.createElement('a'); share.className = 'btn btn-ghost'; share.textContent = 'Share'; share.target = '_blank'; share.rel = 'noopener noreferrer';
+            const msg = type === 'win' ? 'I%20secured%20the%20coffee!%20%F0%9F%8D%BA' : 'I%20failed%20the%20coffee%20quest%20but%20I%27m%20trying%20again.';
+            share.href = 'https://x.com/intent/tweet?text=' + msg + '&url=' + encodeURIComponent(location.href);
+            choicesEl.appendChild(again); choicesEl.appendChild(share);
+        }
+
+        // Skip controls: click button or press S to finish current line instantly; if not typing, advance to next line by simulating Enter
+        skipBtn.addEventListener('click', () => { cancelTyping = true; });
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 's') { cancelTyping = true; }
+            if (e.key === 'Enter') {
+                // If currently typing, finish line; else, click first choice if available
+                if (typing) { cancelTyping = true; } else {
+                    const first = choicesEl.querySelector('button'); if (first) first.click();
+                }
+            }
+        });
+
+        // Start
+        playScene('wake');
+    </script>
+</body>
+
+</html>

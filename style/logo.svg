@@ -1,0 +1,22 @@
+<!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="30" fill="#5756563b" />
+  <path d="M32 10v16c0 14-2 6-4 8s-41 4-14 8v12" stroke="#8f8f8f" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M32 26c21 2 14 2 6 6s4 4 14 18v12" stroke="#8f8f8f" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M0,-20 L0,-6 M-14,10 L-4,3 M14,10 L4,3" 
+          stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" fill/>
+  <circle cx="32" cy="10" r="3" fill="#fff"/>
+
+</svg> -->
+<!-- 
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="32" cy="32" r="30" fill="#1e293b" />
+  <path d="M32 10v16c0 14-2 6-4 8s-41 4-14 8v12" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" fill="none"/>                  <path d="M32 26c21 2 14 2 6 6s4 4 14 18v12" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <circle cx="32" cy="10" r="3" fill="#6366f1"/>
+  </svg> -->
+
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="32" cy="32" r="30" fill="#10b981" fill-opacity="0.2" />
+  <path d="M32 10v16c0 14-2 6-4 8s-41 4-14 8v12" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M32 26c21 2 14 2 6 6s4 4 14 18v12" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <circle cx="32" cy="10" r="3" fill="#10b981"/>
+</svg>

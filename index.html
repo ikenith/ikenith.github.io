@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Roots</title>
+  <link rel="icon" type="image/svg+xml" href="style/logo.svg">
+
+  <!-- Fonts & Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="style/style.css">
+</head>
+
+<body>
+  <!-- Floating logo (top right) -->
+  <div class="fixed top-6 right-8 z-50 flex flex-col items-center cursor-pointer"
+    onclick="window.location.href='index.html'">
+    <img src="style/logo.svg" alt="The Roots Logo" class="h-14 w-14 shadow-lg" />
+    <!-- <span class="mt-1 text-xs text-[#bcbcbc] tracking-wide">Root Browser</span> -->
+  </div>
+
+  <!-- Main header -->
+  <header class="header">
+    <div class="roots-logo">
+      <!-- FIXED viewBox so “s” is visible -->
+      <svg viewBox="0 0 300 70" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <style>
+          text {
+            font-family: 'Georgia', serif;
+            font-size: 52px;
+            fill: #fff;
+          }
+
+          .roots {
+            stroke: #8f8f8f;
+            stroke-width: 1.5;
+            fill: none;
+          }
+        </style>
+        <text x="10" y="45">The Roots</text>
+        <path class="roots" d="M90 38 C95 50, 105 55, 110 45 
+                              M100 38 C105 55, 115 60, 120 48
+                              M110 38 C120 55, 130 52, 135 42" />
+      </svg>
+    </div>
+    <div class="subheading">Thoughts, Notes, and Research</div>
+  </header>
+
+  <!-- Posts list -->
+  <main>
+    <div id="posts" class="post-list"></div>
+  </main>
+
+  <script>
+    // --- CONFIG ---
+    const repo = "ikenith/ikenith.github.io";
+    const branch = "main";
+    const CACHE_KEY = "cached_posts_v1";
+    const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
+
+    // --- HELPERS ---
+    function parseFrontmatter(md) {
+      const match = md.match(/^---\s*([\s\S]*?)\s*---/);
+      if (!match) return {};
+      return match[1].split("\n").reduce((meta, line) => {
+        const [key, ...rest] = line.split(":");
+        if (key && rest.length) {
+          meta[key.trim()] = rest.join(":").trim().replace(/^"|"$/g, "");
+        }
+        return meta;
+      }, {});
+    }
+
+    function renderPosts(posts) {
+      const postsContainer = document.getElementById("posts");
+      postsContainer.innerHTML = posts.length
+        ? posts.map(post => `
+          <div class="post-card">
+            ${post.image ? `
+              <div class="post-image-wrapper">
+                <img src="${post.image}" alt="Post image" class="post-image">
+              </div>
+            ` : ""}
+            <a class="post-title-link flex items-center gap-2 group" href="post.html?file=${encodeURIComponent(post.path)}">
+              <span>${post.title}</span>
+              <span class="text-xl text-[#0ea5e9] group-hover:translate-x-1 transition-transform">&rarr;</span>
+            </a>
+            <div class="post-date">${post.date}</div>
+          </div>
+        `).join("")
+        : `<div style="text-align:center;color:#bcbcbc;">No posts yet.</div>`;
+    }
+
+    async function fetchPostsFromGitHub() {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/posts?ref=${branch}`);
+      if (!res.ok) throw new Error("GitHub API request failed: " + res.status);
+      const files = await res.json();
+      const mdFiles = files.filter(f => f.name.endsWith(".md"));
+
+      const posts = (await Promise.all(mdFiles.map(async file => {
+        try {
+          const fileRes = await fetch(`https://api.github.com/repos/${repo}/contents/${file.path}?ref=${branch}`);
+          if (!fileRes.ok) return null;
+          const data = await fileRes.json();
+          const md = atob(data.content.replace(/\n/g, ""));
+          const meta = parseFrontmatter(md);
+          return {
+            title: meta.title || file.name.replace(".md", ""),
+            date: meta.date || "",
+            image: meta.image || "",
+            path: file.path
+          };
+        } catch {
+          return null;
+        }
+      }))).filter(Boolean);
+
+      posts.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      return posts;
+    }
+
+    async function loadPosts() {
+      const postsContainer = document.getElementById("posts");
+      postsContainer.innerHTML = `<div style="text-align:center;color:#bcbcbc;">Loading...</div>`;
+
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { posts, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          renderPosts(posts);
+          return;
+        }
+      }
+
+      try {
+        const posts = await fetchPostsFromGitHub();
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, timestamp: Date.now() }));
+        renderPosts(posts);
+      } catch (err) {
+        postsContainer.innerHTML = `<div style="text-align:center;color:#f87171;">Failed to load posts.</div>`;
+      }
+    }
+
+    loadPosts();
+  </script>
+
+  <!-- Footer -->
+  <footer class="w-full mt-12 pb-6 flex flex-col items-center text-[#bcbcbc] text-sm opacity-80">
+    <div>
+      &copy; 2025 <span class="font-semibold text-[#0ea5e9]">The Roots</span> &mdash; Crafted with <span
+        style="color:#f87171;">&#9829;</span> and curiosity.
+    </div>
+    <div class="mt-1">
+      <a href="https://github.com/ikenith/ikenith.github.io" target="_blank"
+        class="underline hover:text-[#0ea5e9]">GitHub</a>
+      &middot;
+      <span>Minimalist, dark, and open source.</span>
+    </div>
+  </footer>
+</body>
+
+</html>

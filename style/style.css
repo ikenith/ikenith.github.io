@@ -1,0 +1,126 @@
+body {
+    background: #0a0a0f;
+    color: #e5e7eb;
+    font-family: Inter, system-ui, sans-serif;
+}
+
+/* Main title */
+.header {
+    text-align: center;
+    margin-top: 1rem;
+    display: fixed;
+}
+
+.roots-logo {
+    display: inline-block;
+}
+
+.roots-logo svg {
+    width: 90%;
+    max-width: 400px;
+    height: auto;
+}
+
+.subheading {
+    font-size: 1.2rem;
+    color: #ccc;
+    margin-top: 0.5rem;
+    font-family: 'Georgia', serif;
+}
+
+/* Post list */
+.post-list {
+    max-width: 900px;
+    margin: 2rem auto;
+}
+
+/* Post card */
+.post-card {
+    background: #18181b;
+    border-radius: 1.2rem;
+    padding: 1.3rem 2rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.post-card:hover {
+    background: #23272a;
+}
+
+/* Post images */
+.post-image-wrapper {
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 1.1rem;
+    border-radius: 1.1rem;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #23272a;
+}
+
+.post-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 1.1rem;
+}
+
+/* Post title */
+.post-title-link {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    font-family: Poppins, Inter, sans-serif;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.post-title-link:hover {
+    color: #0ea5e9;
+}
+
+/* Post date */
+.post-date {
+    color: #bcbcbc;
+    font-size: 1rem;
+    margin-top: 0.2rem;
+    font-family: Inter, sans-serif;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .subheading {
+        font-size: 1rem;
+    }
+
+    .post-card {
+        padding: 1rem 0.7rem;
+    }
+
+    .post-list {
+        padding: 0 0.5rem;
+    }
+
+    .post-image {
+        height: auto;
+    }
+
+    .post-title-link {
+        font-size: 1rem;
+    }
+
+    /* Hide/shrink top-right logo on very small screens */
+    .root-browser {
+        transform: scale(0.85);
+        right: 4px;
+        top: 4px;
+    }
+}
