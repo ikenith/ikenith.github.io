@@ -16,31 +16,31 @@
   <link rel="stylesheet" href="style/style.css">
 </head>
 
-<body>
-  <!-- Floating logo and blog link (top right) -->
-  <div class="fixed top-6 right-8 z-50 flex flex-col items-center">
-    <div class="flex items-center space-x-4">
-      <!-- Blog Link -->
-      <div class="relative group">
-        <a href="index.html" class="text-white font-semibold text-lg hover:text-[#0ea5e9] transition-colors">
-          The Root's
-        </a>
-        <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          Read Kamal's Thoughts & Reflections
-        </div>
+<body class="bg-black text-white">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm py-4 px-6">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <!-- Site Title -->
+      <div class="flex items-center cursor-pointer" onclick="window.location.href='index.html'">
+        <img src="style/logo.svg" alt="The Roots Logo" class="h-10 w-10 mr-3" />
+        <span class="text-xl font-bold text-white">The Roots</span>
       </div>
       
-      <!-- Logo -->
-      <div class="cursor-pointer" onclick="window.location.href='index.html'">
-        <img src="style/logo.svg" alt="The Roots Logo" class="h-14 w-14 shadow-lg" />
+      <!-- Writings Link -->
+      <div class="relative group">
+        <a href="#" class="text-white font-medium hover:text-[#0ea5e9] transition-colors text-lg">
+          Writings
+        </a>
+        <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-3 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-gray-700">
+          Read Kamal's thoughts & reflections
+        </div>
       </div>
     </div>
-  </div>
+  </nav>
 
   <!-- Main header -->
-  <header class="header">
+  <header class="header pt-20">
     <div class="roots-logo">
-      <!-- FIXED viewBox so “s” is visible -->
       <svg viewBox="0 0 300 70" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
         <style>
           text {
@@ -66,37 +66,38 @@
 
   <!-- About Section -->
   <section class="max-w-4xl mx-auto px-6 py-12">
-    <div class="flex flex-col md:flex-row items-center gap-8">
+    <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
       <!-- Profile Picture -->
-      <div class="md:w-1/3 flex justify-center">
-        <div class="relative w-64 h-64 overflow-hidden rounded-lg border-2 border-[#0ea5e9] shadow-lg">
-          <img src="style/me.jpg" alt="Kamal" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" />
+      <div class="w-full md:w-1/3 flex justify-center">
+        <div class="w-56 h-56 md:w-64 md:h-64 overflow-hidden rounded-lg shadow-lg">
+          <img src="style/me.jpeg" alt="Kamal" class="w-full h-full object-cover" />
         </div>
       </div>
       
       <!-- About Text -->
-      <div class="md:w-2/3 text-white">
-        <h2 class="text-3xl font-bold mb-4 text-[#0ea5e9]">About Me</h2>
-        <p class="text-lg mb-4">
-          Hello! I'm Kamal, a curious mind exploring the intersections of technology, philosophy, and human creativity. 
-          This space is where I document my journey through thoughts, ideas, and discoveries.
-        </p>
-        <p class="text-lg mb-4">
-          I believe in the power of knowledge sharing and the beauty of connecting ideas across disciplines. 
-          Through writing, I aim to untangle complex concepts and share insights that might resonate with others on similar paths.
-        </p>
-        <p class="text-lg">
-          When I'm not coding or writing, you'll find me reading, experimenting with new technologies, 
-          or simply observing the world with a curious eye.
-        </p>
+      <div class="w-full md:w-2/3">
+        <h2 class="text-3xl font-bold mb-6 text-center md:text-left">Hey, I'm Kamal</h2>
+        <div class="space-y-4 text-lg">
+          <p>
+            A curious mind exploring the intersections of technology, philosophy, and human creativity. 
+            This space is where I document my journey through thoughts, ideas, and discoveries.
+          </p>
+          <p>
+           I write because I love to write. And when people read my texts, it makes me want to write even more.
+          </p>
+          <p>
+            I like being around people, observing them, learning from them, understanding them in small ways.
+            I also love nature — I believe in it. I believe in The Origin Principle.
+          </p>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Posts list -->
-  <main>
+  <main class="pb-12">
     <div class="max-w-4xl mx-auto px-6">
-      <h2 class="text-2xl font-bold text-white mb-6 text-center">Latest Writings</h2>
+      <h2 class="text-2xl font-bold mb-8 text-center border-b border-gray-800 pb-4">Latest Writings</h2>
       <div id="posts" class="post-list"></div>
     </div>
   </main>
@@ -125,20 +126,20 @@
       const postsContainer = document.getElementById("posts");
       postsContainer.innerHTML = posts.length
         ? posts.map(post => `
-          <div class="post-card">
+          <div class="post-card mb-8 p-6 border border-gray-800 rounded-lg hover:border-[#0ea5e9] transition-colors">
             ${post.image ? `
-              <div class="post-image-wrapper">
-                <img src="${post.image}" alt="Post image" class="post-image">
+              <div class="post-image-wrapper mb-4">
+                <img src="${post.image}" alt="Post image" class="post-image w-full h-48 object-cover rounded">
               </div>
             ` : ""}
             <a class="post-title-link flex items-center gap-2 group" href="post.html?file=${encodeURIComponent(post.path)}">
-              <span>${post.title}</span>
+              <span class="text-xl font-semibold">${post.title}</span>
               <span class="text-xl text-[#0ea5e9] group-hover:translate-x-1 transition-transform">&rarr;</span>
             </a>
-            <div class="post-date">${post.date}</div>
+            <div class="post-date text-gray-400 mt-2">${post.date}</div>
           </div>
         `).join("")
-        : `<div style="text-align:center;color:#bcbcbc;">No posts yet.</div>`;
+        : `<div class="text-center text-gray-400 py-8">No posts yet.</div>`;
     }
 
     async function fetchPostsFromGitHub() {
@@ -171,7 +172,7 @@
 
     async function loadPosts() {
       const postsContainer = document.getElementById("posts");
-      postsContainer.innerHTML = `<div style="text-align:center;color:#bcbcbc;">Loading...</div>`;
+      postsContainer.innerHTML = `<div class="text-center text-gray-400 py-8">Loading...</div>`;
 
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
@@ -187,7 +188,7 @@
         localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, timestamp: Date.now() }));
         renderPosts(posts);
       } catch (err) {
-        postsContainer.innerHTML = `<div style="text-align:center;color:#f87171;">Failed to load posts.</div>`;
+        postsContainer.innerHTML = `<div class="text-center text-red-400 py-8">Failed to load posts.</div>`;
       }
     }
 
@@ -195,10 +196,10 @@
   </script>
 
   <!-- Footer -->
-  <footer class="w-full mt-12 pb-6 flex flex-col items-center text-[#bcbcbc] text-sm opacity-80">
+  <footer class="w-full mt-12 pb-6 flex flex-col items-center text-gray-400 text-sm">
     <div>
       &copy; 2025 <span class="font-semibold text-[#0ea5e9]">The Roots</span> &mdash; Crafted with <span
-        style="color:#f87171;">&#9829;</span> and curiosity.
+        class="text-red-400">&#9829;</span> and curiosity.
     </div>
     <div class="mt-1">
       <a href="https://github.com/ikenith/ikenith.github.io" target="_blank"
