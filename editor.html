@@ -4,12 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Editor | The Roots</title>
+  <link rel="icon" type="image/svg+xml" href="style/logo.svg">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
 
   <style>
     body {
@@ -140,78 +139,42 @@
       border: 1px solid #fca5a5;
     }
 
-    .file-input-wrapper {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-    }
-
-    .file-input-wrapper input[type="file"] {
-      position: absolute;
-      left: 0;
-      top: 0;
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-    }
-
-    .file-input-button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      background: #23272a;
-      color: #fff;
+    .image-preview {
+      max-width: 300px;
       border-radius: 0.75rem;
-      padding: 0.75rem 1.5rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px dashed #4b5563;
-      text-align: center;
-    }
-
-    .file-input-button:hover {
-      background: #2a2e32;
-      border-color: #6b7280;
-    }
-
-    .crop-button {
-      background: #0ea5e9;
-      color: white;
-      font-weight: 600;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .crop-button:hover {
-      background: #0284c7;
-      transform: translateY(-2px);
-    }
-
-    .cropper-container {
-      max-width: 100%;
-      margin: 0 auto;
+      margin-top: 1rem;
+      display: none;
     }
   </style>
 </head>
 
 <body>
-  <main>
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm py-4 px-6">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <!-- Site Title -->
+      <div class="flex items-center cursor-pointer" onclick="window.location.href='index.html'">
+        <img src="style/logo.svg" alt="The Roots Logo" class="h-10 w-10" />
+      </div>
+      
+      <!-- Back to Site -->
+      <div class="relative group">
+        <a href="index.html" class="text-white font-medium hover:text-gray-300 transition-colors text-lg">
+          Back to Site
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="pt-20">
     <div class="editor-card">
-      <!-- Logo and Title -->
+      <!-- Header -->
       <div class="flex items-center gap-3 mb-6">
-        <span class="inline-block">
-          <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-            <rect width="38" height="38" rx="12" fill="#23272a" />
-            <text x="7" y="27" font-size="22" font-family="monospace" fill="#fff">MD</text>
-          </svg>
-        </span>
-        <h1 class="text-3xl font-bold text-white">Markdown Editor</h1>
+        <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+          <rect width="38" height="38" rx="12" fill="#23272a" />
+          <text x="7" y="27" font-size="22" font-family="monospace" fill="#fff">✏️</text>
+        </svg>
+        <h1 class="text-3xl font-bold text-white">New Writing</h1>
       </div>
 
       <!-- Status Messages -->
@@ -261,45 +224,22 @@
         </div>
       </div>
 
-      <!-- Image Upload with Cropping -->
+      <!-- Image URL -->
       <div class="mb-6">
         <label class="block text-sm font-medium text-gray-300 mb-2">
-          Cover Image (optional)
+          Featured Image URL (optional)
         </label>
-        <div class="file-input-wrapper">
-          <div class="file-input-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
-              <line x1="16" y1="5" x2="22" y2="5"></line>
-              <line x1="19" y1="2" x2="19" y2="8"></line>
-              <circle cx="9" cy="9" r="2"></circle>
-              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-            </svg>
-            <span>Choose and Crop Image</span>
-          </div>
-          <input type="file" id="post-image" accept="image/*">
-        </div>
-        
-        <!-- Image Preview and Cropping Area -->
-        <div id="image-cropper" class="hidden mt-4">
-          <div class="bg-black p-4 rounded-lg">
-            <img id="crop-image" class="max-w-full max-h-96 mx-auto" />
-          </div>
-          <div class="flex justify-center mt-3 gap-3">
-            <button id="crop-btn" class="crop-button">
-              Crop & Use Image
-            </button>
-            <button id="cancel-crop" class="btn-secondary">
-              Cancel
-            </button>
-          </div>
-        </div>
-
-        <!-- Cropped Image Preview -->
-        <div id="cropped-preview" class="hidden mt-4">
-          <label class="block text-sm font-medium text-gray-300 mb-2">Cropped Preview</label>
-          <img id="cropped-image" class="max-w-xs rounded-lg border border-gray-600" />
-        </div>
+        <input 
+          type="url" 
+          id="post-image" 
+          class="input-field" 
+          placeholder="https://example.com/image.jpg"
+          autocomplete="off"
+        />
+        <p class="text-xs text-gray-400 mt-1">
+          Use an external image hosting service like Imgur, Cloudinary, or upload to GitHub issues and use the raw URL
+        </p>
+        <img id="image-preview" class="image-preview" alt="Image preview">
       </div>
 
       <!-- Toolbar -->
@@ -369,10 +309,6 @@ console.log('Hello World');
   </main>
 
   <script>
-    // Global variables
-    let cropper = null;
-    let croppedImageData = null;
-
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       // Set today's date as default
@@ -390,89 +326,27 @@ console.log('Hello World');
       // Initialize preview
       preview.innerHTML = marked.parse(input.value || '*Start writing to see preview...*');
 
-      // Initialize image cropping
-      initializeImageCropping();
+      // Image URL preview
+      document.getElementById('post-image').addEventListener('input', function(e) {
+        const url = e.target.value.trim();
+        const preview = document.getElementById('image-preview');
+        if (url && isValidUrl(url)) {
+          preview.src = url;
+          preview.style.display = 'block';
+        } else {
+          preview.style.display = 'none';
+        }
+      });
     });
 
-    // Image cropping functionality
-    function initializeImageCropping() {
-      const imageInput = document.getElementById('post-image');
-      const imageCropper = document.getElementById('image-cropper');
-      const cropImage = document.getElementById('crop-image');
-      const cropBtn = document.getElementById('crop-btn');
-      const cancelCrop = document.getElementById('cancel-crop');
-      const croppedPreview = document.getElementById('cropped-preview');
-
-      imageInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        // Check if file is an image
-        if (!file.type.match('image.*')) {
-          showStatus('Please select an image file', 'error');
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          cropImage.src = event.target.result;
-          imageCropper.classList.remove('hidden');
-          
-          // Destroy existing cropper
-          if (cropper) {
-            cropper.destroy();
-          }
-          
-          // Initialize cropper
-          cropper = new Cropper(cropImage, {
-            aspectRatio: 16 / 9,
-            viewMode: 1,
-            background: false,
-            autoCropArea: 0.8,
-            responsive: true,
-            restore: false,
-            guides: true,
-            center: true,
-            highlight: false,
-            cropBoxMovable: true,
-            cropBoxResizable: true,
-            toggleDragModeOnDblclick: false,
-          });
-        };
-        reader.readAsDataURL(file);
-      });
-
-      cropBtn.addEventListener('click', function() {
-        if (!cropper) return;
-
-        // Get cropped canvas
-        const canvas = cropper.getCroppedCanvas({
-          width: 1200,
-          height: 675,
-          imageSmoothingQuality: 'high'
-        });
-
-        // Convert to data URL
-        croppedImageData = canvas.toDataURL('image/jpeg', 0.85);
-        
-        // Show preview
-        document.getElementById('cropped-image').src = croppedImageData;
-        croppedPreview.classList.remove('hidden');
-        
-        // Hide cropper
-        imageCropper.classList.add('hidden');
-        
-        showStatus('Image cropped successfully!', 'success');
-      });
-
-      cancelCrop.addEventListener('click', function() {
-        imageCropper.classList.add('hidden');
-        document.getElementById('post-image').value = '';
-        if (cropper) {
-          cropper.destroy();
-          cropper = null;
-        }
-      });
+    // URL validation
+    function isValidUrl(string) {
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
+      }
     }
 
     // Markdown helper functions
@@ -519,18 +393,8 @@ console.log('Hello World');
       document.getElementById('post-date').value = new Date().toISOString().split('T')[0];
       document.getElementById('post-image').value = '';
       document.getElementById('md-input').value = '';
+      document.getElementById('image-preview').style.display = 'none';
       document.getElementById('md-preview').innerHTML = marked.parse('*Start writing to see preview...*');
-      
-      // Clear image cropper
-      document.getElementById('image-cropper').classList.add('hidden');
-      document.getElementById('cropped-preview').classList.add('hidden');
-      croppedImageData = null;
-      
-      if (cropper) {
-        cropper.destroy();
-        cropper = null;
-      }
-      
       showStatus('Form cleared', 'success');
     }
 
@@ -539,6 +403,7 @@ console.log('Hello World');
       const token = document.getElementById('github-token').value.trim();
       const title = document.getElementById('post-title').value.trim();
       const date = document.getElementById('post-date').value;
+      const image = document.getElementById('post-image').value.trim();
       const markdown = document.getElementById('md-input').value.trim();
 
       // Validation
@@ -568,18 +433,12 @@ console.log('Hello World');
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)+/g, '') + '.md';
 
-        // Handle image upload if exists
-        let imageUrl = '';
-        if (croppedImageData) {
-          imageUrl = await uploadImageToGitHub(token, title, croppedImageData);
-        }
-
         // Create frontmatter
         const frontmatter = [
           '---',
           `title: "${title.replace(/"/g, '\\"')}"`,
           `date: "${date}"`,
-          imageUrl && `image: "${imageUrl}"`,
+          image && `image: "${image}"`,
           '---',
           ''
         ].filter(line => line !== false && line !== null).join('\n');
@@ -656,53 +515,6 @@ console.log('Hello World');
         showStatus(errorMessage, 'error');
       }
     };
-
-    // Upload image to GitHub
-    async function uploadImageToGitHub(token, title, imageData) {
-      const repo = 'ikenith/ikenith.github.io';
-      
-      // Convert data URL to blob
-      const response = await fetch(imageData);
-      const blob = await response.blob();
-      
-      // Convert blob to base64
-      const base64 = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.readAsDataURL(blob);
-      });
-
-      // Create filename for image
-      const imageFilename = title.toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '') + '.jpg';
-
-      const imagePath = `images/${imageFilename}`;
-
-      // Upload image
-      const imageResponse = await fetch(
-        `https://api.github.com/repos/${repo}/contents/${imagePath}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: `Add image for post: ${title}`,
-            content: base64
-          })
-        }
-      );
-
-      if (!imageResponse.ok) {
-        throw new Error('Failed to upload image');
-      }
-
-      // Return the raw GitHub URL for the image
-      return `https://raw.githubusercontent.com/${repo}/main/${imagePath}`;
-    }
   </script>
 </body>
 </html>
