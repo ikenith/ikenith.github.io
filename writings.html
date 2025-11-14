@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Writings | The Roots</title>
+  <link rel="icon" type="image/svg+xml" href="style/logo.svg">
+
+  <!-- Fonts & Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    img {
+      background-color: transparent !important;
+    }
+    
+    .transparent-bg {
+      background: transparent !important;
+    }
+    
+    .post-card {
+      transition: all 0.3s ease;
+      border-radius: 1.5rem;
+    }
+    
+    .post-card:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body class="bg-black text-white">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm py-4 px-6">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <!-- Site Title -->
+      <div class="flex items-center cursor-pointer transparent-bg" onclick="window.location.href='index.html'">
+        <img src="style/logo.svg" alt="The Roots Logo" class="h-10 w-10 transparent-bg" />
+      </div>
+      
+      <!-- Home Link -->
+      <div class="relative group transparent-bg">
+        <a href="index.html" class="text-white font-medium hover:text-gray-300 transition-colors text-lg">
+          Home
+        </a>
+        <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-gray-300 text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-gray-600 shadow-lg">
+          Back to homepage
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <header class="pt-24 pb-12 text-center">
+    <h1 class="text-4xl font-bold mb-4">All Writings</h1>
+    <p class="text-gray-400 max-w-2xl mx-auto px-6">
+      A collection of thoughts, ideas, and discoveries exploring technology, philosophy, and creativity.
+    </p>
+  </header>
+
+  <!-- All Posts -->
+  <main class="pb-12 transparent-bg">
+    <div class="max-w-4xl mx-auto px-6 transparent-bg">
+      <div id="posts" class="post-list transparent-bg"></div>
+    </div>
+  </main>
+
+  <script>
+    // --- CONFIG ---
+    const repo = "ikenith/ikenith.github.io";
+    const branch = "main";
+    const CACHE_KEY = "cached_posts_v1";
+    const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
+
+    // --- HELPERS ---
+    function parseFrontmatter(md) {
+      const match = md.match(/^---\s*([\s\S]*?)\s*---/);
+      if (!match) return {};
+      return match[1].split("\n").reduce((meta, line) => {
+        const [key, ...rest] = line.split(":");
+        if (key && rest.length) {
+          meta[key.trim()] = rest.join(":").trim().replace(/^"|"$/g, "");
+        }
+        return meta;
+      }, {});
+    }
+
+    function renderPosts(posts) {
+      const postsContainer = document.getElementById("posts");
+      postsContainer.innerHTML = posts.length
+        ? posts.map(post => `
+          <div class="post-card mb-8 p-6 border border-gray-800 rounded-2xl hover:border-gray-500 transition-colors transparent-bg">
+            ${post.image ? `
+              <div class="post-image-wrapper mb-4 transparent-bg">
+                <img src="${post.image}" alt="Post image" class="post-image w-full h-48 object-cover rounded-2xl transparent-bg" />
+              </div>
+            ` : ""}
+            <a class="post-title-link flex items-center gap-2 group transparent-bg" href="post.html?file=${encodeURIComponent(post.path)}">
+              <span class="text-xl font-semibold">${post.title}</span>
+              <span class="text-xl text-gray-400 group-hover:text-gray-300 group-hover:translate-x-1 transition-all">&rarr;</span>
+            </a>
+            <div class="post-date text-gray-400 mt-2">${post.date}</div>
+          </div>
+        `).join("")
+        : `<div class="text-center text-gray-400 py-8">No posts yet.</div>`;
+    }
+
+    async function fetchPostsFromGitHub() {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/posts?ref=${branch}`);
+      if (!res.ok) throw new Error("GitHub API request failed: " + res.status);
+      const files = await res.json();
+      const mdFiles = files.filter(f => f.name.endsWith(".md"));
+
+      const posts = (await Promise.all(mdFiles.map(async file => {
+        try {
+          const fileRes = await fetch(`https://api.github.com/repos/${repo}/contents/${file.path}?ref=${branch}`);
+          if (!fileRes.ok) return null;
+          const data = await fileRes.json();
+          const md = atob(data.content.replace(/\n/g, ""));
+          const meta = parseFrontmatter(md);
+          return {
+            title: meta.title || file.name.replace(".md", ""),
+            date: meta.date || "",
+            image: meta.image || "",
+            path: file.path
+          };
+        } catch {
+          return null;
+        }
+      }))).filter(Boolean);
+
+      posts.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      return posts;
+    }
+
+    async function loadPosts() {
+      const postsContainer = document.getElementById("posts");
+      postsContainer.innerHTML = `<div class="text-center text-gray-400 py-8">Loading...</div>`;
+
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { posts, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          renderPosts(posts);
+          return;
+        }
+      }
+
+      try {
+        const posts = await fetchPostsFromGitHub();
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, timestamp: Date.now() }));
+        renderPosts(posts);
+      } catch (err) {
+        postsContainer.innerHTML = `<div class="text-center text-red-400 py-8">Failed to load posts.</div>`;
+      }
+    }
+
+    loadPosts();
+  </script>
+
+  <!-- Footer -->
+  <footer class="w-full mt-12 pb-6 flex flex-col items-center text-gray-400 text-sm transparent-bg">
+    <div>
+      &copy; 2025 <span class="font-semibold text-gray-300">The Roots</span> &mdash; Crafted with <span
+        class="text-gray-500">&#9829;</span> and curiosity.
+    </div>
+    <div class="mt-1">
+      <a href="https://github.com/ikenith/ikenith.github.io" target="_blank"
+        class="underline hover:text-gray-300">GitHub</a>
+      &middot;
+      <span>Minimalist, dark, and open source.</span>
+    </div>
+  </footer>
+</body>
+
+</html>
