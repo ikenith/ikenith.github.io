@@ -61,7 +61,7 @@
       color: #6b7280;
     }
 
-    /* Timeline styles - FIXED */
+    /* Timeline styles - REVISED */
     .timeline {
       position: relative;
       max-width: 800px;
@@ -82,13 +82,10 @@
     .timeline-year {
       position: relative;
       margin-bottom: 3rem;
-      padding-left: 80px; /* Add padding for year marker */
     }
 
     .year-marker {
-      position: absolute;
-      left: 0;
-      top: 0;
+      position: relative;
       width: 60px;
       height: 60px;
       background: #0a0a0f;
@@ -100,21 +97,22 @@
       font-weight: 700;
       font-size: 0.9rem;
       z-index: 2;
+      margin-bottom: 1rem;
     }
 
     .year-content {
-      /* Remove margin-left since we're using padding on parent */
+      padding-left: 80px;
+      position: relative;
     }
 
     .month-group {
       margin-bottom: 2rem;
       position: relative;
-      padding-left: 40px; /* Space for month marker */
     }
 
     .month-marker {
       position: absolute;
-      left: 0;
+      left: -50px;
       top: 0;
       width: 40px;
       height: 40px;
@@ -126,6 +124,10 @@
       justify-content: center;
       font-size: 0.8rem;
       font-weight: 600;
+    }
+
+    .month-posts {
+      margin-left: 0;
     }
 
     .day-group {
@@ -205,7 +207,7 @@
         left: 20px;
       }
 
-      .timeline-year {
+      .year-content {
         padding-left: 60px;
       }
 
@@ -215,11 +217,8 @@
         font-size: 0.8rem;
       }
 
-      .month-group {
-        padding-left: 30px;
-      }
-
       .month-marker {
+        left: -40px;
         width: 35px;
         height: 35px;
         font-size: 0.7rem;
@@ -315,8 +314,8 @@
         const year = date.getFullYear();
         const month = date.toLocaleString('default', { month: 'long' });
         const day = date.getDate();
-        const yearMonth = `${year}-${date.getMonth()}`;
-        const yearMonthDay = `${year}-${date.getMonth()}-${day}`;
+        const yearMonth = `${year}-${String(date.getMonth()).padStart(2, '0')}`;
+        const yearMonthDay = `${year}-${String(date.getMonth()).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
         if (!grouped[year]) {
           grouped[year] = {};
@@ -324,12 +323,14 @@
         if (!grouped[year][yearMonth]) {
           grouped[year][yearMonth] = {
             month: month,
+            monthNum: date.getMonth(),
             days: {}
           };
         }
         if (!grouped[year][yearMonth].days[yearMonthDay]) {
           grouped[year][yearMonth].days[yearMonthDay] = {
             day: day,
+            date: post.date,
             posts: []
           };
         }
@@ -348,6 +349,14 @@
         weekday: 'long' 
       };
       return date.toLocaleDateString('en-US', options);
+    }
+
+    function formatShortDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
     }
 
     function renderTimeline(posts) {
@@ -375,7 +384,12 @@
             <div class="year-content">
         `;
         
-        const months = Object.keys(grouped[year]).sort((a, b) => b.split('-')[1] - a.split('-')[1]);
+        // Sort months in descending order (newest first)
+        const months = Object.keys(grouped[year]).sort((a, b) => {
+          const monthA = parseInt(a.split('-')[1]);
+          const monthB = parseInt(b.split('-')[1]);
+          return monthB - monthA;
+        });
         
         months.forEach(monthKey => {
           const monthData = grouped[year][monthKey];
@@ -396,16 +410,11 @@
             const dayData = monthData.days[dayKey];
             timelineHTML += `
               <div class="day-group">
-                <div class="day-marker">${formatDateDisplay(posts.find(p => {
-                  const postDate = new Date(p.date);
-                  return postDate.getDate() === dayData.day && 
-                         postDate.getMonth() === parseInt(monthKey.split('-')[1]) &&
-                         postDate.getFullYear() === parseInt(year);
-                })?.date || '')}</div>
+                <div class="day-marker">${formatDateDisplay(dayData.date)}</div>
                 <div class="day-posts">
             `;
             
-            // Sort posts by time if multiple posts on same day
+            // Sort posts by time - NEWEST FIRST (top to bottom)
             dayData.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
             
             dayData.posts.forEach(post => {
@@ -419,7 +428,7 @@
                   <a class="post-title-link block transparent-bg" href="post.html?file=${encodeURIComponent(post.path)}">
                     <h2 class="post-title-centered">${post.title}</h2>
                   </a>
-                  <div class="post-date-centered">${post.date}</div>
+                  <div class="post-date-centered">${formatShortDate(post.date)}</div>
                   <div class="text-center mt-4">
                     <a href="post.html?file=${encodeURIComponent(post.path)}" 
                        class="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
