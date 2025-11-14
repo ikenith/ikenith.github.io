@@ -12,6 +12,43 @@
     rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <style>
+    /* Force transparent background for all images */
+    img {
+      background-color: transparent !important;
+    }
+    
+    /* Ensure parent containers don't add backgrounds */
+    .transparent-bg {
+      background: transparent !important;
+    }
+    
+    /* Custom styles for header */
+    .header {
+      text-align: center;
+      padding: 2rem 0;
+    }
+    
+    .roots-logo {
+      margin-bottom: 1rem;
+    }
+    
+    .subheading {
+      color: #bcbcbc;
+      font-size: 1.125rem;
+      font-weight: 300;
+    }
+    
+    /* Post card styles */
+    .post-card {
+      transition: all 0.3s ease;
+    }
+    
+    .post-card:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+
   <!-- External CSS -->
   <link rel="stylesheet" href="style/style.css">
 </head>
@@ -21,12 +58,12 @@
   <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm py-4 px-6">
     <div class="max-w-6xl mx-auto flex justify-between items-center">
       <!-- Site Title -->
-      <div class="flex items-center cursor-pointer" onclick="window.location.href='index.html'">
-        <img src="style/logo.svg" alt="The Roots Logo" class="h-10 w-10" />
+      <div class="flex items-center cursor-pointer transparent-bg" onclick="window.location.href='index.html'">
+        <img src="style/logo.svg" alt="The Roots Logo" class="h-10 w-10 transparent-bg" />
       </div>
       
       <!-- Writings Link -->
-      <div class="relative group">
+      <div class="relative group transparent-bg">
         <a href="#writings" class="text-white font-medium hover:text-gray-300 transition-colors text-lg">
           Writings
         </a>
@@ -38,8 +75,8 @@
   </nav>
 
   <!-- Main header -->
-  <header class="header pt-20">
-    <div class="roots-logo">
+  <header class="header pt-20 transparent-bg">
+    <div class="roots-logo transparent-bg">
       <svg viewBox="0 0 300 70" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
         <style>
           text {
@@ -64,17 +101,17 @@
   </header>
 
   <!-- About Section -->
-  <section class="max-w-4xl mx-auto px-6 py-12">
+  <section class="max-w-4xl mx-auto px-6 py-12 transparent-bg">
     <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-      <!-- Profile Picture -->
-      <div class="w-full md:w-1/3 flex justify-center">
-        <div class="w-56 h-56 md:w-64 md:h-64 overflow-hidden rounded-lg shadow-lg">
-          <img src="style/me.jpg" alt="Kamal" class="w-full h-full object-cover" />
+      <!-- Profile Picture - Transparent Background -->
+      <div class="w-full md:w-1/3 flex justify-center transparent-bg">
+        <div class="w-56 h-56 md:w-64 md:h-64 overflow-hidden rounded-lg transparent-bg">
+          <img src="style/me.png" alt="Kamal" class="w-full h-full object-contain transparent-bg" />
         </div>
       </div>
       
       <!-- About Text -->
-      <div class="w-full md:w-2/3">
+      <div class="w-full md:w-2/3 transparent-bg">
         <h2 class="text-3xl font-bold mb-6 text-center md:text-left">Hey, I'm Kamal</h2>
         <div class="space-y-4 text-lg">
           <p>
@@ -95,10 +132,10 @@
   </section>
 
   <!-- Posts list -->
-  <main class="pb-12" id="writings">
-    <div class="max-w-4xl mx-auto px-6">
+  <main class="pb-12 transparent-bg" id="writings">
+    <div class="max-w-4xl mx-auto px-6 transparent-bg">
       <h2 class="text-2xl font-bold mb-8 text-center border-b border-gray-800 pb-4">Latest Writings</h2>
-      <div id="posts" class="post-list"></div>
+      <div id="posts" class="post-list transparent-bg"></div>
     </div>
   </main>
 
@@ -126,13 +163,13 @@
       const postsContainer = document.getElementById("posts");
       postsContainer.innerHTML = posts.length
         ? posts.map(post => `
-          <div class="post-card mb-8 p-6 border border-gray-800 rounded-lg hover:border-gray-500 transition-colors">
+          <div class="post-card mb-8 p-6 border border-gray-800 rounded-lg hover:border-gray-500 transition-colors transparent-bg">
             ${post.image ? `
-              <div class="post-image-wrapper mb-4">
-                <img src="${post.image}" alt="Post image" class="post-image w-full h-48 object-cover rounded">
+              <div class="post-image-wrapper mb-4 transparent-bg">
+                <img src="${post.image}" alt="Post image" class="post-image w-full h-48 object-cover rounded transparent-bg" />
               </div>
             ` : ""}
-            <a class="post-title-link flex items-center gap-2 group" href="post.html?file=${encodeURIComponent(post.path)}">
+            <a class="post-title-link flex items-center gap-2 group transparent-bg" href="post.html?file=${encodeURIComponent(post.path)}">
               <span class="text-xl font-semibold">${post.title}</span>
               <span class="text-xl text-gray-400 group-hover:text-gray-300 group-hover:translate-x-1 transition-all">&rarr;</span>
             </a>
@@ -196,7 +233,7 @@
   </script>
 
   <!-- Footer -->
-  <footer class="w-full mt-12 pb-6 flex flex-col items-center text-gray-400 text-sm">
+  <footer class="w-full mt-12 pb-6 flex flex-col items-center text-gray-400 text-sm transparent-bg">
     <div>
       &copy; 2025 <span class="font-semibold text-gray-300">The Roots</span> &mdash; Crafted with <span
         class="text-gray-500">&#9829;</span> and curiosity.
