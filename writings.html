@@ -61,7 +61,7 @@
       color: #6b7280;
     }
 
-    /* Timeline styles */
+    /* Timeline styles - FIXED */
     .timeline {
       position: relative;
       max-width: 800px;
@@ -82,6 +82,7 @@
     .timeline-year {
       position: relative;
       margin-bottom: 3rem;
+      padding-left: 80px; /* Add padding for year marker */
     }
 
     .year-marker {
@@ -102,17 +103,18 @@
     }
 
     .year-content {
-      margin-left: 80px;
+      /* Remove margin-left since we're using padding on parent */
     }
 
     .month-group {
       margin-bottom: 2rem;
       position: relative;
+      padding-left: 40px; /* Space for month marker */
     }
 
     .month-marker {
       position: absolute;
-      left: -50px;
+      left: 0;
       top: 0;
       width: 40px;
       height: 40px;
@@ -126,8 +128,21 @@
       font-weight: 600;
     }
 
-    .month-posts {
-      margin-left: 0;
+    .day-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .day-marker {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #9ca3af;
+      margin-bottom: 1rem;
+      padding-left: 1rem;
+      border-left: 2px solid #374151;
+    }
+
+    .day-posts {
+      /* Posts container for each day */
     }
 
     /* Post card centered styles */
@@ -135,9 +150,11 @@
       background: #18181b;
       border: 1px solid #2d2d35;
       border-radius: 1.5rem;
-      padding: 2rem;
-      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
       transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
     }
 
     .post-card-centered:hover {
@@ -188,18 +205,21 @@
         left: 20px;
       }
 
+      .timeline-year {
+        padding-left: 60px;
+      }
+
       .year-marker {
         width: 50px;
         height: 50px;
         font-size: 0.8rem;
       }
 
-      .year-content {
-        margin-left: 70px;
+      .month-group {
+        padding-left: 30px;
       }
 
       .month-marker {
-        left: -40px;
         width: 35px;
         height: 35px;
         font-size: 0.7rem;
@@ -287,14 +307,16 @@
       }, {});
     }
 
-    function groupPostsByYearMonth(posts) {
+    function groupPostsByYearMonthDay(posts) {
       const grouped = {};
       
       posts.forEach(post => {
         const date = new Date(post.date);
         const year = date.getFullYear();
         const month = date.toLocaleString('default', { month: 'long' });
+        const day = date.getDate();
         const yearMonth = `${year}-${date.getMonth()}`;
+        const yearMonthDay = `${year}-${date.getMonth()}-${day}`;
         
         if (!grouped[year]) {
           grouped[year] = {};
@@ -302,13 +324,30 @@
         if (!grouped[year][yearMonth]) {
           grouped[year][yearMonth] = {
             month: month,
+            days: {}
+          };
+        }
+        if (!grouped[year][yearMonth].days[yearMonthDay]) {
+          grouped[year][yearMonth].days[yearMonthDay] = {
+            day: day,
             posts: []
           };
         }
-        grouped[year][yearMonth].posts.push(post);
+        grouped[year][yearMonth].days[yearMonthDay].posts.push(post);
       });
       
       return grouped;
+    }
+
+    function formatDateDisplay(dateStr) {
+      const date = new Date(dateStr);
+      const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long' 
+      };
+      return date.toLocaleDateString('en-US', options);
     }
 
     function renderTimeline(posts) {
@@ -324,7 +363,7 @@
       timelineContainer.classList.remove('hidden');
       noResults.classList.add('hidden');
       
-      const grouped = groupPostsByYearMonth(posts);
+      const grouped = groupPostsByYearMonthDay(posts);
       const years = Object.keys(grouped).sort((a, b) => b - a);
       
       let timelineHTML = '';
@@ -346,24 +385,53 @@
               <div class="month-posts">
           `;
           
-          monthData.posts.forEach(post => {
+          // Sort days in descending order (newest first)
+          const days = Object.keys(monthData.days).sort((a, b) => {
+            const dayA = parseInt(a.split('-')[2]);
+            const dayB = parseInt(b.split('-')[2]);
+            return dayB - dayA;
+          });
+          
+          days.forEach(dayKey => {
+            const dayData = monthData.days[dayKey];
             timelineHTML += `
-              <div class="post-card-centered transparent-bg">
-                ${post.image ? `
-                  <div class="post-image-wrapper transparent-bg">
-                    <img src="${post.image}" alt="Post image" class="post-image-full transparent-bg" />
-                  </div>
-                ` : ""}
-                <a class="post-title-link block transparent-bg" href="post.html?file=${encodeURIComponent(post.path)}">
-                  <h2 class="post-title-centered">${post.title}</h2>
-                </a>
-                <div class="post-date-centered">${post.date}</div>
-                <div class="text-center mt-4">
-                  <a href="post.html?file=${encodeURIComponent(post.path)}" 
-                     class="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
-                    <span>Read more</span>
-                    <span class="text-lg transition-transform group-hover:translate-x-1">&rarr;</span>
+              <div class="day-group">
+                <div class="day-marker">${formatDateDisplay(posts.find(p => {
+                  const postDate = new Date(p.date);
+                  return postDate.getDate() === dayData.day && 
+                         postDate.getMonth() === parseInt(monthKey.split('-')[1]) &&
+                         postDate.getFullYear() === parseInt(year);
+                })?.date || '')}</div>
+                <div class="day-posts">
+            `;
+            
+            // Sort posts by time if multiple posts on same day
+            dayData.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            dayData.posts.forEach(post => {
+              timelineHTML += `
+                <div class="post-card-centered transparent-bg">
+                  ${post.image ? `
+                    <div class="post-image-wrapper transparent-bg">
+                      <img src="${post.image}" alt="Post image" class="post-image-full transparent-bg" />
+                    </div>
+                  ` : ""}
+                  <a class="post-title-link block transparent-bg" href="post.html?file=${encodeURIComponent(post.path)}">
+                    <h2 class="post-title-centered">${post.title}</h2>
                   </a>
+                  <div class="post-date-centered">${post.date}</div>
+                  <div class="text-center mt-4">
+                    <a href="post.html?file=${encodeURIComponent(post.path)}" 
+                       class="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors">
+                      <span>Read more</span>
+                      <span class="text-lg transition-transform group-hover:translate-x-1">&rarr;</span>
+                    </a>
+                  </div>
+                </div>
+              `;
+            });
+            
+            timelineHTML += `
                 </div>
               </div>
             `;
