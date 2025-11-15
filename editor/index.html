@@ -145,6 +145,19 @@
             </div>
           </div>
 
+          <!-- Current Draft Info -->
+          <div id="current-draft-info" class="draft-info hidden">
+            <div class="draft-info-content">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C19.9609 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M17 21V13H7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 3V8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Editing draft: <strong id="current-draft-name">Untitled</strong></span>
+              <button id="clear-current-draft" class="btn-small btn-secondary">Clear</button>
+            </div>
+          </div>
+
           <!-- Post Filename (for editing) -->
           <div class="input-group hidden" id="filename-group">
             <label for="post-filename">Post Filename</label>
@@ -418,6 +431,66 @@ console.log('Hello World');
       </div>
       <div class="modal-footer">
         <button id="cancel-posts" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Draft Modal -->
+  <div id="save-draft-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Save Draft</h3>
+        <button id="close-save-draft-modal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label for="draft-name">Draft Name</label>
+          <input 
+            type="text" 
+            id="draft-name" 
+            class="input-field" 
+            placeholder="Enter a name for this draft"
+            autocomplete="off"
+          />
+          <p class="input-hint">
+            💡 Give your draft a descriptive name to easily identify it later
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="confirm-save-draft" class="btn-primary">Save Draft</button>
+        <button id="cancel-save-draft" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Draft Modal -->
+  <div id="load-draft-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Load Draft</h3>
+        <button id="close-load-draft-modal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label for="drafts-search">Search Drafts</label>
+          <input 
+            type="text" 
+            id="drafts-search" 
+            class="input-field" 
+            placeholder="Search drafts..."
+            autocomplete="off"
+          />
+        </div>
+        <div class="drafts-actions">
+          <button id="delete-all-drafts" class="btn-secondary btn-small">Delete All Drafts</button>
+        </div>
+        <div id="drafts-list" class="drafts-list">
+          <div class="loading-text">Loading drafts...</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-load-draft" class="btn-secondary">Cancel</button>
       </div>
     </div>
   </div>
