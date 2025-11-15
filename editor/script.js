@@ -8,6 +8,8 @@ let isEditing = false;
 let currentPostSha = null;
 let currentImageSha = null;
 let activityLogs = [];
+let drafts = [];
+let currentDraftId = null;
 
 // Initialize the editor
 document.addEventListener('DOMContentLoaded', function() {
@@ -31,8 +33,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     input.addEventListener('input', () => {
         preview.innerHTML = marked.parse(input.value || '*Start writing to see preview...*');
-        // Auto-save draft on content change
-        autoSaveDraft();
+        // Auto-save draft on content change if we have a current draft
+        if (currentDraftId) {
+            autoSaveCurrentDraft();
+        }
     });
     
     // Initialize preview
@@ -56,10 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize event listeners
     initializeEventListeners();
     
-    // Load any existing draft
-    loadDraft();
-    
-    // Load activity logs
+    // Load drafts and activity logs
+    loadDrafts();
     loadActivityLogs();
     
     // Show welcome message
@@ -91,8 +93,21 @@ function initializeEventListeners() {
     document.getElementById('clear-all-messages').addEventListener('click', clearAllMessages);
     
     // Draft management
-    document.getElementById('save-draft').addEventListener('click', saveDraft);
-    document.getElementById('load-draft').addEventListener('click', loadDraft);
+    document.getElementById('save-draft').addEventListener('click', showSaveDraftModal);
+    document.getElementById('load-draft').addEventListener('click', showLoadDraftModal);
+    document.getElementById('clear-current-draft').addEventListener('click', clearCurrentDraft);
+    
+    // Draft modals
+    document.getElementById('close-save-draft-modal').addEventListener('click', closeSaveDraftModal);
+    document.getElementById('cancel-save-draft').addEventListener('click', closeSaveDraftModal);
+    document.getElementById('confirm-save-draft').addEventListener('click', saveDraftWithName);
+    
+    document.getElementById('close-load-draft-modal').addEventListener('click', closeLoadDraftModal);
+    document.getElementById('cancel-load-draft').addEventListener('click', closeLoadDraftModal);
+    document.getElementById('delete-all-drafts').addEventListener('click', deleteAllDrafts);
+    
+    // Draft search
+    document.getElementById('drafts-search').addEventListener('input', searchDrafts);
     
     // Preview toggle
     document.getElementById('toggle-preview').addEventListener('click', togglePreview);
@@ -350,8 +365,10 @@ function formatText(type) {
     // Update preview
     document.getElementById('md-preview').innerHTML = marked.parse(input.value);
     
-    // Auto-save draft
-    autoSaveDraft();
+    // Auto-save draft if we have a current draft
+    if (currentDraftId) {
+        autoSaveCurrentDraft();
+    }
 }
 
 // Open image insertion modal
@@ -434,8 +451,10 @@ function insertImageFromModal() {
     // Close modal
     closeImageModal();
     
-    // Auto-save draft
-    autoSaveDraft();
+    // Auto-save draft if we have a current draft
+    if (currentDraftId) {
+        autoSaveCurrentDraft();
+    }
     
     showMessage('Image inserted successfully!', 'success');
     addToLog('Image inserted into content', 'info');
@@ -549,54 +568,275 @@ function updateFilename() {
     }
 }
 
-// Draft management
-function autoSaveDraft() {
-    const draft = {
+// Draft management system
+function loadDrafts() {
+    const draftsData = localStorage.getItem('editor-drafts');
+    if (draftsData) {
+        drafts = JSON.parse(draftsData);
+    } else {
+        drafts = [];
+    }
+}
+
+function saveDrafts() {
+    localStorage.setItem('editor-drafts', JSON.stringify(drafts));
+}
+
+function showSaveDraftModal() {
+    const title = document.getElementById('post-title').value.trim();
+    const draftNameInput = document.getElementById('draft-name');
+    
+    // Pre-fill with title if available, otherwise keep current name
+    if (title && !draftNameInput.value) {
+        draftNameInput.value = title;
+    }
+    
+    document.getElementById('save-draft-modal').classList.remove('hidden');
+}
+
+function closeSaveDraftModal() {
+    document.getElementById('save-draft-modal').classList.add('hidden');
+    document.getElementById('draft-name').value = '';
+}
+
+function saveDraftWithName() {
+    const draftName = document.getElementById('draft-name').value.trim();
+    if (!draftName) {
+        showMessage('Please enter a name for your draft', 'error');
+        return;
+    }
+    
+    const draftData = getCurrentEditorData();
+    
+    // Create or update draft
+    if (currentDraftId) {
+        // Update existing draft
+        const draftIndex = drafts.findIndex(d => d.id === currentDraftId);
+        if (draftIndex !== -1) {
+            drafts[draftIndex] = {
+                ...drafts[draftIndex],
+                name: draftName,
+                data: draftData,
+                updatedAt: new Date().toISOString()
+            };
+            showMessage(`Draft "${draftName}" updated successfully!`, 'success');
+            addToLog(`Draft updated: ${draftName}`, 'info');
+        }
+    } else {
+        // Create new draft
+        const newDraft = {
+            id: 'draft-' + Date.now(),
+            name: draftName,
+            data: draftData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        drafts.unshift(newDraft);
+        currentDraftId = newDraft.id;
+        showMessage(`Draft "${draftName}" saved successfully!`, 'success');
+        addToLog(`New draft saved: ${draftName}`, 'info');
+    }
+    
+    saveDrafts();
+    updateCurrentDraftInfo();
+    closeSaveDraftModal();
+}
+
+function autoSaveCurrentDraft() {
+    if (!currentDraftId) return;
+    
+    const draftData = getCurrentEditorData();
+    const draftIndex = drafts.findIndex(d => d.id === currentDraftId);
+    
+    if (draftIndex !== -1) {
+        drafts[draftIndex] = {
+            ...drafts[draftIndex],
+            data: draftData,
+            updatedAt: new Date().toISOString()
+        };
+        saveDrafts();
+    }
+}
+
+function getCurrentEditorData() {
+    return {
         title: document.getElementById('post-title').value,
         date: document.getElementById('post-date').value,
         content: document.getElementById('md-input').value,
         imageOption: currentImageOption,
         imageUrl: document.getElementById('post-image-url').value,
-        timestamp: new Date().toISOString()
+        filename: document.getElementById('post-filename').value,
+        isEditing: isEditing,
+        postSha: currentPostSha
     };
+}
+
+function showLoadDraftModal() {
+    document.getElementById('load-draft-modal').classList.remove('hidden');
+    displayDraftsList();
+}
+
+function closeLoadDraftModal() {
+    document.getElementById('load-draft-modal').classList.add('hidden');
+    document.getElementById('drafts-search').value = '';
+}
+
+function displayDraftsList() {
+    const draftsList = document.getElementById('drafts-list');
+    const searchTerm = document.getElementById('drafts-search').value.toLowerCase();
     
-    localStorage.setItem('editor-draft', JSON.stringify(draft));
-}
-
-function saveDraft() {
-    autoSaveDraft();
-    showMessage('Draft saved successfully!', 'success');
-    addToLog('Draft saved locally', 'info');
-}
-
-function loadDraft() {
-    const draftData = localStorage.getItem('editor-draft');
-    if (!draftData) {
-        showMessage('No draft found to load', 'info');
+    const filteredDrafts = drafts.filter(draft => 
+        draft.name.toLowerCase().includes(searchTerm) ||
+        draft.data.title.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filteredDrafts.length === 0) {
+        draftsList.innerHTML = `
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/>
+                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2"/>
+                    <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/>
+                    <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/>
+                    <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <h4>No drafts found</h4>
+                <p>${searchTerm ? 'No drafts match your search' : 'Save your first draft to get started'}</p>
+            </div>
+        `;
         return;
     }
     
-    try {
-        const draft = JSON.parse(draftData);
-        
-        document.getElementById('post-title').value = draft.title || '';
-        document.getElementById('post-date').value = draft.date || new Date().toISOString().split('T')[0];
-        document.getElementById('md-input').value = draft.content || '';
-        document.getElementById('post-image-url').value = draft.imageUrl || '';
-        
-        if (draft.imageOption) {
-            switchImageTab(draft.imageOption);
-        }
-        
-        // Update preview
-        document.getElementById('md-preview').innerHTML = marked.parse(draft.content || '*Start writing to see preview...*');
-        
-        showMessage('Draft loaded successfully!', 'success');
-        addToLog('Draft loaded from local storage', 'info');
-    } catch (error) {
-        showMessage('Error loading draft: ' + error.message, 'error');
-        addToLog(`Error loading draft: ${error.message}`, 'error');
+    draftsList.innerHTML = '';
+    
+    filteredDrafts.forEach(draft => {
+        const draftItem = document.createElement('div');
+        draftItem.className = `draft-item ${draft.id === currentDraftId ? 'active' : ''}`;
+        draftItem.innerHTML = `
+            <div class="draft-header">
+                <div class="draft-title">${draft.name}</div>
+                <div class="draft-actions">
+                    <button class="btn-small btn-secondary" onclick="loadDraft('${draft.id}')">Load</button>
+                    <button class="btn-small btn-secondary" onclick="deleteDraft('${draft.id}')">Delete</button>
+                </div>
+            </div>
+            <div class="draft-meta">
+                <span>Created: ${new Date(draft.createdAt).toLocaleDateString()}</span>
+                <span>Updated: ${new Date(draft.updatedAt).toLocaleDateString()}</span>
+                <span>Title: ${draft.data.title || 'Untitled'}</span>
+            </div>
+            <div class="draft-preview">
+                ${draft.data.content ? draft.data.content.substring(0, 100) + '...' : 'No content'}
+            </div>
+        `;
+        draftsList.appendChild(draftItem);
+    });
+}
+
+function searchDrafts() {
+    displayDraftsList();
+}
+
+function loadDraft(draftId) {
+    const draft = drafts.find(d => d.id === draftId);
+    if (!draft) {
+        showMessage('Draft not found', 'error');
+        return;
     }
+    
+    const data = draft.data;
+    
+    // Populate form
+    document.getElementById('post-title').value = data.title || '';
+    document.getElementById('post-date').value = data.date || new Date().toISOString().split('T')[0];
+    document.getElementById('md-input').value = data.content || '';
+    document.getElementById('post-image-url').value = data.imageUrl || '';
+    document.getElementById('post-filename').value = data.filename || '';
+    
+    // Handle image
+    if (data.imageOption) {
+        switchImageTab(data.imageOption);
+        if (data.imageUrl && data.imageOption === 'url') {
+            document.getElementById('url-preview').src = data.imageUrl;
+            document.getElementById('url-preview').classList.remove('hidden');
+        }
+    }
+    
+    // Update editing state
+    isEditing = data.isEditing || false;
+    currentPostSha = data.postSha || null;
+    document.getElementById('save-btn-text').textContent = isEditing ? 'Update Writing' : 'Publish Writing';
+    document.getElementById('filename-group').classList.toggle('hidden', !isEditing);
+    
+    // Update preview
+    document.getElementById('md-preview').innerHTML = marked.parse(data.content || '*Start writing to see preview...*');
+    
+    // Set current draft
+    currentDraftId = draftId;
+    updateCurrentDraftInfo();
+    
+    // Close modal
+    closeLoadDraftModal();
+    
+    showMessage(`Loaded draft "${draft.name}"`, 'success');
+    addToLog(`Draft loaded: ${draft.name}`, 'info');
+}
+
+function deleteDraft(draftId) {
+    if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+        return;
+    }
+    
+    const draft = drafts.find(d => d.id === draftId);
+    drafts = drafts.filter(d => d.id !== draftId);
+    
+    // If we're deleting the current draft, clear it
+    if (currentDraftId === draftId) {
+        clearCurrentDraft();
+    }
+    
+    saveDrafts();
+    displayDraftsList();
+    
+    showMessage(`Draft "${draft.name}" deleted`, 'success');
+    addToLog(`Draft deleted: ${draft.name}`, 'info');
+}
+
+function deleteAllDrafts() {
+    if (!confirm('Are you sure you want to delete ALL drafts? This action cannot be undone.')) {
+        return;
+    }
+    
+    drafts = [];
+    saveDrafts();
+    clearCurrentDraft();
+    displayDraftsList();
+    
+    showMessage('All drafts deleted', 'success');
+    addToLog('All drafts deleted', 'info');
+}
+
+function clearCurrentDraft() {
+    currentDraftId = null;
+    updateCurrentDraftInfo();
+    showMessage('Current draft cleared', 'info');
+    addToLog('Current draft cleared', 'info');
+}
+
+function updateCurrentDraftInfo() {
+    const draftInfo = document.getElementById('current-draft-info');
+    const draftName = document.getElementById('current-draft-name');
+    
+    if (currentDraftId) {
+        const draft = drafts.find(d => d.id === currentDraftId);
+        if (draft) {
+            draftName.textContent = draft.name;
+            draftInfo.classList.remove('hidden');
+            return;
+        }
+    }
+    
+    draftInfo.classList.add('hidden');
 }
 
 // Clear form
@@ -631,8 +871,8 @@ function clearForm() {
     currentImageSha = null;
     document.getElementById('save-btn-text').textContent = 'Publish Writing';
     
-    // Clear draft
-    localStorage.removeItem('editor-draft');
+    // Clear current draft
+    clearCurrentDraft();
     
     showMessage('Form cleared', 'success');
     addToLog('Editor form cleared', 'info');
@@ -824,6 +1064,9 @@ function loadPostForEditing(post) {
     currentPostSha = post.sha;
     document.getElementById('save-btn-text').textContent = 'Update Writing';
     document.getElementById('filename-group').classList.remove('hidden');
+    
+    // Clear current draft when loading a post
+    clearCurrentDraft();
     
     // Close modal
     closePostsModal();
@@ -1053,8 +1296,6 @@ async function savePost() {
         if (!isEditing) {
             setTimeout(() => {
                 clearForm();
-                // Clear draft after successful publish
-                localStorage.removeItem('editor-draft');
             }, 2000);
         }
         
