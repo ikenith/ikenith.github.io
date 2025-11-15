@@ -80,6 +80,104 @@ body {
   color: var(--accent);
 }
 
+/* Toast Messages */
+.toast-container {
+  position: fixed;
+  top: 5rem;
+  right: 1.5rem;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+}
+
+.toast {
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  animation: slideInRight 0.3s ease, fadeOut 0.3s ease 4.7s forwards;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 100%;
+  backdrop-filter: blur(12px);
+}
+
+.toast.success {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--success);
+  color: #34d399;
+}
+
+.toast.error {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--error);
+  color: #fca5a5;
+}
+
+.toast.warning {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: var(--warning);
+  color: #fcd34d;
+}
+
+.toast.info {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--info);
+  color: #93c5fd;
+}
+
+.toast-content {
+  flex: 1;
+  font-weight: 500;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.125rem;
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
 /* Main Editor Container */
 .editor-container {
   max-width: 1400px;
@@ -98,7 +196,7 @@ body {
   background: var(--bg-secondary);
   border-left: 1px solid var(--border-color);
   transition: right 0.3s ease;
-  z-index: 999;
+  z-index: 1001;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -115,6 +213,9 @@ body {
   padding: 1.5rem;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .message-sidebar-header h3 {
@@ -234,17 +335,6 @@ body {
   margin-left: 0.5rem;
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 /* Editor Wrapper */
 .editor-wrapper {
   background: var(--bg-secondary);
@@ -257,7 +347,7 @@ body {
 .editor-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border-color);
@@ -265,8 +355,13 @@ body {
 
 .header-left {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
+  flex: 1;
+}
+
+.header-title {
+  flex: 1;
 }
 
 .editor-icon {
@@ -278,16 +373,38 @@ body {
   background: var(--bg-tertiary);
   border-radius: 0.75rem;
   color: var(--accent);
+  flex-shrink: 0;
 }
 
 .editor-header h1 {
   font-size: 1.875rem;
   font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.draft-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid var(--info);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--info);
+  max-width: fit-content;
+}
+
+.draft-indicator span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .header-actions {
   display: flex;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 /* Editor Content Layout */
@@ -573,6 +690,10 @@ body {
   transition: all 0.3s ease;
 }
 
+.preview-panel.hidden {
+  display: none;
+}
+
 .preview-header {
   display: flex;
   justify-content: space-between;
@@ -804,6 +925,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1101;
 }
 
 .modal-close:hover {
@@ -1053,6 +1175,12 @@ body {
   .modal-content {
     width: 95%;
     margin: 1rem;
+  }
+  
+  .toast-container {
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
   }
 }
 
