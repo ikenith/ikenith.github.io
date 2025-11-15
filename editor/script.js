@@ -546,7 +546,7 @@ function insertImageFromModal() {
     addToLog('Image inserted into content', 'info');
 }
 
-// Toggle preview panel - FIXED
+// Toggle preview panel
 function togglePreview() {
     const previewPanel = document.getElementById('preview-panel');
     const toggleText = document.getElementById('toggle-preview-text');
@@ -758,7 +758,7 @@ function loadDraft(draftId) {
     document.getElementById('post-image-url').value = data.imageUrl || '';
     document.getElementById('post-filename').value = data.filename || '';
     
-    // Handle image - FIXED: Properly restore image state
+    // Handle image
     if (data.imageOption) {
         switchImageTab(data.imageOption);
         
@@ -931,7 +931,7 @@ function exportMarkdown() {
     addToLog(`Markdown exported: ${title || 'untitled'}`, 'info');
 }
 
-// Load and edit existing posts - FIXED: Image handling
+// Load and edit existing posts
 async function showPostsModal() {
     const token = document.getElementById('github-token').value.trim();
     if (!token) {
@@ -1049,7 +1049,7 @@ function loadPostForEditing(post) {
     document.getElementById('md-input').value = content;
     document.getElementById('post-filename').value = post.name;
     
-    // Handle image - FIXED: Proper image loading for existing posts
+    // Handle image
     if (post.image) {
         // Check if it's a GitHub raw URL (uploaded image)
         if (post.image.includes('raw.githubusercontent.com')) {
@@ -1060,16 +1060,21 @@ function loadPostForEditing(post) {
             document.getElementById('url-preview').classList.remove('hidden');
             
             // Store the image URL for potential updating
-            croppedImageData = null; // We don't have the original cropped data
+            croppedImageData = null;
+            
+            // Try to get the image SHA for future updates
+            getImageShaFromUrl(post.image);
         } else {
             // External URL
             switchImageTab('url');
             document.getElementById('post-image-url').value = post.image;
             document.getElementById('url-preview').src = post.image;
             document.getElementById('url-preview').classList.remove('hidden');
+            currentImageSha = null;
         }
     } else {
         switchImageTab('none');
+        currentImageSha = null;
     }
     
     // Update preview
@@ -1088,6 +1093,44 @@ function loadPostForEditing(post) {
     
     showToast(`Loaded post "${post.title}" for editing`, 'success');
     addToLog(`Post loaded for editing: ${post.title}`, 'info');
+}
+
+// Get image SHA from GitHub URL
+async function getImageShaFromUrl(imageUrl) {
+    const token = document.getElementById('github-token').value.trim();
+    if (!token) return;
+    
+    try {
+        // Extract image path from URL
+        // URL format: https://raw.githubusercontent.com/ikenith/ikenith.github.io/main/images/filename.jpg
+        const urlParts = imageUrl.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const imagePath = `images/${filename}`;
+        
+        const repo = 'ikenith/ikenith.github.io';
+        const response = await fetch(
+            `https://api.github.com/repos/${repo}/contents/${imagePath}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (response.ok) {
+            const imageData = await response.json();
+            currentImageSha = imageData.sha;
+            addToLog(`Retrieved image SHA for: ${filename}`, 'info');
+        } else {
+            currentImageSha = null;
+            addToLog(`Could not retrieve image SHA for: ${filename}`, 'warning');
+        }
+    } catch (error) {
+        console.error('Error getting image SHA:', error);
+        currentImageSha = null;
+        addToLog(`Error getting image SHA: ${error.message}`, 'error');
+    }
 }
 
 function searchPosts() {
@@ -1236,7 +1279,7 @@ async function savePost() {
     try {
         showToast(isEditing ? 'Updating post...' : 'Saving post...', 'info');
         
-        // Handle image based on selected option - FIXED: Image updating
+        // Handle image based on selected option
         let imageUrl = '';
         let imageSha = currentImageSha;
         
@@ -1245,6 +1288,7 @@ async function savePost() {
             const imageResult = await uploadImageToGitHub(token, title, croppedImageData, imageSha);
             imageUrl = imageResult.url;
             imageSha = imageResult.sha;
+            currentImageSha = imageSha; // Update the current image SHA
         } else if (currentImageOption === 'url') {
             const urlInput = document.getElementById('post-image-url').value.trim();
             if (urlInput && isValidUrl(urlInput)) {
@@ -1289,7 +1333,7 @@ async function savePost() {
                 body: JSON.stringify({
                     message: isEditing ? `Update post: ${title}` : `Add post: ${title}`,
                     content: btoa(unescape(encodeURIComponent(content))),
-                    sha: currentPostSha
+                    sha: currentPostSha || undefined // Only include SHA if it exists
                 })
             }
         );
@@ -1330,7 +1374,7 @@ async function savePost() {
     }
 }
 
-// Upload image to GitHub
+// Upload image to GitHub - FIXED: Proper SHA handling
 async function uploadImageToGitHub(token, title, imageData, existingSha = null) {
     const repo = 'ikenith/ikenith.github.io';
     
@@ -1349,6 +1393,17 @@ async function uploadImageToGitHub(token, title, imageData, existingSha = null) 
 
     const imagePath = `images/${imageFilename}`;
 
+    // Prepare the request body
+    const requestBody = {
+        message: isEditing ? `Update image for post: ${title}` : `Add image for post: ${title}`,
+        content: base64
+    };
+
+    // Only include SHA if we have one and we're updating an existing file
+    if (existingSha) {
+        requestBody.sha = existingSha;
+    }
+
     const imageResponse = await fetch(
         `https://api.github.com/repos/${repo}/contents/${imagePath}`,
         {
@@ -1358,16 +1413,48 @@ async function uploadImageToGitHub(token, title, imageData, existingSha = null) 
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                message: isEditing ? `Update image for post: ${title}` : `Add image for post: ${title}`,
-                content: base64,
-                sha: existingSha
-            })
+            body: JSON.stringify(requestBody)
         }
     );
 
     if (!imageResponse.ok) {
         const errorData = await imageResponse.json();
+        
+        // If we get a SHA error and we're trying to update, try creating as new instead
+        if (errorData.message && errorData.message.includes('sha') && existingSha) {
+            showToast('Image update failed, creating new image...', 'warning');
+            
+            // Retry without SHA to create a new file
+            const retryBody = {
+                message: `Add new image for post: ${title}`,
+                content: base64
+            };
+            
+            const retryResponse = await fetch(
+                `https://api.github.com/repos/${repo}/contents/${imagePath}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(retryBody)
+                }
+            );
+            
+            if (!retryResponse.ok) {
+                const retryErrorData = await retryResponse.json();
+                throw new Error(`Image upload failed: ${retryErrorData.message}`);
+            }
+            
+            const retryResult = await retryResponse.json();
+            return {
+                url: `https://raw.githubusercontent.com/${repo}/main/${imagePath}`,
+                sha: retryResult.content.sha
+            };
+        }
+        
         throw new Error(`Image upload failed: ${errorData.message}`);
     }
 
