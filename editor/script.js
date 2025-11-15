@@ -10,6 +10,7 @@ let currentImageSha = null;
 let activityLogs = [];
 let drafts = [];
 let currentDraftId = null;
+let isPreviewVisible = true;
 
 // Initialize the editor
 document.addEventListener('DOMContentLoaded', function() {
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadActivityLogs();
     
     // Show welcome message
-    showMessage('Welcome to the Advanced Editor! Start writing your content.', 'info');
+    showToast('Welcome to the Advanced Editor! Start writing your content.', 'info');
     addToLog('Editor initialized', 'info');
 });
 
@@ -96,6 +97,7 @@ function initializeEventListeners() {
     document.getElementById('save-draft').addEventListener('click', showSaveDraftModal);
     document.getElementById('load-draft').addEventListener('click', showLoadDraftModal);
     document.getElementById('clear-current-draft').addEventListener('click', clearCurrentDraft);
+    document.getElementById('change-draft').addEventListener('click', showLoadDraftModal);
     
     // Draft modals
     document.getElementById('close-save-draft-modal').addEventListener('click', closeSaveDraftModal);
@@ -142,6 +144,115 @@ function initializeEventListeners() {
     
     // Update filename when title changes
     document.getElementById('post-title').addEventListener('input', updateFilename);
+}
+
+// Toast message system
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toast-container');
+    const toastId = 'toast-' + Date.now();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.id = toastId;
+    toast.innerHTML = `
+        <div class="toast-content">${message}</div>
+        <button class="toast-close" onclick="removeToast('${toastId}')">&times;</button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto-remove toast after 5 seconds
+    setTimeout(() => {
+        removeToast(toastId);
+    }, 5000);
+    
+    // Add to message history
+    addToMessageHistory(message, type);
+}
+
+function removeToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (toast) {
+        toast.style.animation = 'fadeOut 0.3s ease forwards';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }
+}
+
+// Message history system
+function addToMessageHistory(message, type = 'info') {
+    const messageObj = {
+        id: Date.now(),
+        message,
+        type,
+        timestamp: new Date().toLocaleTimeString()
+    };
+    
+    messages.unshift(messageObj);
+    
+    // Limit messages to 50
+    if (messages.length > 50) {
+        messages.pop();
+    }
+    
+    // Update message list
+    updateMessageList();
+    
+    // Show message badge if there are unread messages
+    updateMessageBadge();
+    
+    // Add to activity log
+    addToLog(`Message: ${message}`, type);
+}
+
+function updateMessageList() {
+    const messageList = document.getElementById('message-list');
+    messageList.innerHTML = '';
+    
+    messages.forEach(msg => {
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${msg.type}`;
+        messageEl.innerHTML = `
+            <div class="message-content">${msg.message}</div>
+            <div class="message-time">${msg.timestamp}</div>
+            <button class="message-close" onclick="removeMessage(${msg.id})">&times;</button>
+        `;
+        messageList.appendChild(messageEl);
+    });
+    
+    // Update message count
+    document.getElementById('message-count').textContent = messages.length;
+}
+
+function removeMessage(id) {
+    messages = messages.filter(msg => msg.id !== id);
+    updateMessageList();
+    updateMessageBadge();
+}
+
+function clearAllMessages() {
+    messages = [];
+    updateMessageList();
+    updateMessageBadge();
+    showToast('All messages cleared', 'info');
+}
+
+function updateMessageBadge() {
+    const badge = document.getElementById('message-badge');
+    if (messages.length > 0) {
+        badge.textContent = messages.length;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+}
+
+function toggleMessageSidebar() {
+    const sidebar = document.getElementById('message-sidebar');
+    sidebar.classList.toggle('active');
 }
 
 // Switch between image options for featured image
@@ -203,13 +314,13 @@ function initializeImageCropping() {
 
         // Check if file is an image
         if (!file.type.match('image.*')) {
-            showMessage('Please select an image file', 'error');
+            showToast('Please select an image file', 'error');
             return;
         }
 
         // Check file size (max 10MB)
         if (file.size > 10 * 1024 * 1024) {
-            showMessage('Image size should be less than 10MB', 'error');
+            showToast('Image size should be less than 10MB', 'error');
             return;
         }
 
@@ -262,7 +373,7 @@ function initializeImageCropping() {
         // Hide cropper
         imageCropper.classList.add('hidden');
         
-        showMessage('Image cropped successfully!', 'success');
+        showToast('Image cropped successfully!', 'success');
         addToLog('Image cropped for post', 'info');
     });
 
@@ -393,13 +504,13 @@ function handleInlineImageUpload(e) {
 
     // Check if file is an image
     if (!file.type.match('image.*')) {
-        showMessage('Please select an image file', 'error');
+        showToast('Please select an image file', 'error');
         return;
     }
 
     // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-        showMessage('Image size should be less than 10MB', 'error');
+        showToast('Image size should be less than 10MB', 'error');
         return;
     }
 
@@ -419,18 +530,18 @@ function insertImageFromModal() {
     if (currentModalImageOption === 'upload') {
         const imageData = document.getElementById('inline-image-upload').dataset.imageData;
         if (!imageData) {
-            showMessage('Please select an image to upload', 'error');
+            showToast('Please select an image to upload', 'error');
             return;
         }
         
         // In a real implementation, you would upload the image and get a URL
         // For now, we'll use a data URL (not recommended for production)
         imageUrl = imageData;
-        showMessage('Note: For production use, upload images to a proper hosting service', 'warning');
+        showToast('Note: For production use, upload images to a proper hosting service', 'warning');
     } else {
         imageUrl = document.getElementById('inline-image-url').value.trim();
         if (!imageUrl || !isValidUrl(imageUrl)) {
-            showMessage('Please enter a valid image URL', 'error');
+            showToast('Please enter a valid image URL', 'error');
             return;
         }
     }
@@ -456,104 +567,25 @@ function insertImageFromModal() {
         autoSaveCurrentDraft();
     }
     
-    showMessage('Image inserted successfully!', 'success');
+    showToast('Image inserted successfully!', 'success');
     addToLog('Image inserted into content', 'info');
-}
-
-// Message system
-function showMessage(message, type = 'info') {
-    const messageObj = {
-        id: Date.now(),
-        message,
-        type,
-        timestamp: new Date().toLocaleTimeString()
-    };
-    
-    messages.unshift(messageObj);
-    
-    // Limit messages to 20
-    if (messages.length > 20) {
-        messages.pop();
-    }
-    
-    // Update message list
-    updateMessageList();
-    
-    // Show message badge if there are unread messages
-    updateMessageBadge();
-    
-    // Auto-remove message after 5 seconds (except for errors)
-    if (type !== 'error') {
-        setTimeout(() => {
-            removeMessage(messageObj.id);
-        }, 5000);
-    }
-    
-    // Add to activity log
-    addToLog(`Message: ${message}`, type);
-}
-
-function updateMessageList() {
-    const messageList = document.getElementById('message-list');
-    messageList.innerHTML = '';
-    
-    messages.forEach(msg => {
-        const messageEl = document.createElement('div');
-        messageEl.className = `message ${msg.type}`;
-        messageEl.innerHTML = `
-            <div class="message-content">${msg.message}</div>
-            <div class="message-time">${msg.timestamp}</div>
-            <button class="message-close" onclick="removeMessage(${msg.id})">&times;</button>
-        `;
-        messageList.appendChild(messageEl);
-    });
-    
-    // Update message count
-    document.getElementById('message-count').textContent = messages.length;
-}
-
-function removeMessage(id) {
-    messages = messages.filter(msg => msg.id !== id);
-    updateMessageList();
-    updateMessageBadge();
-}
-
-function clearAllMessages() {
-    messages = [];
-    updateMessageList();
-    updateMessageBadge();
-    showMessage('All messages cleared', 'info');
-}
-
-function updateMessageBadge() {
-    const badge = document.getElementById('message-badge');
-    if (messages.length > 0) {
-        badge.textContent = messages.length;
-        badge.classList.remove('hidden');
-    } else {
-        badge.classList.add('hidden');
-    }
-}
-
-function toggleMessageSidebar() {
-    const sidebar = document.getElementById('message-sidebar');
-    sidebar.classList.toggle('active');
 }
 
 // Toggle preview panel
 function togglePreview() {
     const previewPanel = document.getElementById('preview-panel');
-    const toggleBtn = document.getElementById('toggle-preview');
-    const toggleText = toggleBtn.querySelector('span');
+    const toggleText = document.getElementById('toggle-preview-text');
     
-    if (previewPanel.classList.contains('hidden-mobile')) {
-        previewPanel.classList.remove('hidden-mobile');
-        toggleText.textContent = 'Hide Preview';
-        addToLog('Preview panel shown', 'info');
-    } else {
-        previewPanel.classList.add('hidden-mobile');
+    if (isPreviewVisible) {
+        previewPanel.classList.add('hidden');
         toggleText.textContent = 'Show Preview';
+        isPreviewVisible = false;
         addToLog('Preview panel hidden', 'info');
+    } else {
+        previewPanel.classList.remove('hidden');
+        toggleText.textContent = 'Hide Preview';
+        isPreviewVisible = true;
+        addToLog('Preview panel shown', 'info');
     }
 }
 
@@ -602,7 +634,7 @@ function closeSaveDraftModal() {
 function saveDraftWithName() {
     const draftName = document.getElementById('draft-name').value.trim();
     if (!draftName) {
-        showMessage('Please enter a name for your draft', 'error');
+        showToast('Please enter a name for your draft', 'error');
         return;
     }
     
@@ -619,7 +651,7 @@ function saveDraftWithName() {
                 data: draftData,
                 updatedAt: new Date().toISOString()
             };
-            showMessage(`Draft "${draftName}" updated successfully!`, 'success');
+            showToast(`Draft "${draftName}" updated successfully!`, 'success');
             addToLog(`Draft updated: ${draftName}`, 'info');
         }
     } else {
@@ -633,7 +665,7 @@ function saveDraftWithName() {
         };
         drafts.unshift(newDraft);
         currentDraftId = newDraft.id;
-        showMessage(`Draft "${draftName}" saved successfully!`, 'success');
+        showToast(`Draft "${draftName}" saved successfully!`, 'success');
         addToLog(`New draft saved: ${draftName}`, 'info');
     }
     
@@ -687,7 +719,7 @@ function displayDraftsList() {
     
     const filteredDrafts = drafts.filter(draft => 
         draft.name.toLowerCase().includes(searchTerm) ||
-        draft.data.title.toLowerCase().includes(searchTerm)
+        (draft.data.title && draft.data.title.toLowerCase().includes(searchTerm))
     );
     
     if (filteredDrafts.length === 0) {
@@ -740,7 +772,7 @@ function searchDrafts() {
 function loadDraft(draftId) {
     const draft = drafts.find(d => d.id === draftId);
     if (!draft) {
-        showMessage('Draft not found', 'error');
+        showToast('Draft not found', 'error');
         return;
     }
     
@@ -778,7 +810,7 @@ function loadDraft(draftId) {
     // Close modal
     closeLoadDraftModal();
     
-    showMessage(`Loaded draft "${draft.name}"`, 'success');
+    showToast(`Loaded draft "${draft.name}"`, 'success');
     addToLog(`Draft loaded: ${draft.name}`, 'info');
 }
 
@@ -798,7 +830,7 @@ function deleteDraft(draftId) {
     saveDrafts();
     displayDraftsList();
     
-    showMessage(`Draft "${draft.name}" deleted`, 'success');
+    showToast(`Draft "${draft.name}" deleted`, 'success');
     addToLog(`Draft deleted: ${draft.name}`, 'info');
 }
 
@@ -812,31 +844,36 @@ function deleteAllDrafts() {
     clearCurrentDraft();
     displayDraftsList();
     
-    showMessage('All drafts deleted', 'success');
+    showToast('All drafts deleted', 'success');
     addToLog('All drafts deleted', 'info');
 }
 
 function clearCurrentDraft() {
     currentDraftId = null;
     updateCurrentDraftInfo();
-    showMessage('Current draft cleared', 'info');
+    showToast('Current draft cleared', 'info');
     addToLog('Current draft cleared', 'info');
 }
 
 function updateCurrentDraftInfo() {
     const draftInfo = document.getElementById('current-draft-info');
     const draftName = document.getElementById('current-draft-name');
+    const draftIndicator = document.getElementById('current-draft-indicator');
+    const draftTitle = document.getElementById('current-draft-title');
     
     if (currentDraftId) {
         const draft = drafts.find(d => d.id === currentDraftId);
         if (draft) {
             draftName.textContent = draft.name;
+            draftTitle.textContent = draft.name;
             draftInfo.classList.remove('hidden');
+            draftIndicator.classList.remove('hidden');
             return;
         }
     }
     
     draftInfo.classList.add('hidden');
+    draftIndicator.classList.add('hidden');
 }
 
 // Clear form
@@ -874,7 +911,7 @@ function clearForm() {
     // Clear current draft
     clearCurrentDraft();
     
-    showMessage('Form cleared', 'success');
+    showToast('Form cleared', 'success');
     addToLog('Editor form cleared', 'info');
 }
 
@@ -885,7 +922,7 @@ function exportMarkdown() {
     const content = document.getElementById('md-input').value.trim();
     
     if (!content) {
-        showMessage('No content to export', 'error');
+        showToast('No content to export', 'error');
         return;
     }
     
@@ -911,7 +948,7 @@ function exportMarkdown() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    showMessage('Markdown exported successfully!', 'success');
+    showToast('Markdown exported successfully!', 'success');
     addToLog(`Markdown exported: ${title || 'untitled'}`, 'info');
 }
 
@@ -919,7 +956,7 @@ function exportMarkdown() {
 async function showPostsModal() {
     const token = document.getElementById('github-token').value.trim();
     if (!token) {
-        showMessage('Please enter your GitHub Personal Access Token first', 'error');
+        showToast('Please enter your GitHub Personal Access Token first', 'error');
         return;
     }
     
@@ -987,7 +1024,7 @@ async function loadPostsList(token) {
     } catch (error) {
         console.error('Error loading posts:', error);
         postsList.innerHTML = `<div class="loading-text">Error loading posts: ${error.message}</div>`;
-        showMessage('Error loading posts: ' + error.message, 'error');
+        showToast('Error loading posts: ' + error.message, 'error');
     }
 }
 
@@ -1071,7 +1108,7 @@ function loadPostForEditing(post) {
     // Close modal
     closePostsModal();
     
-    showMessage(`Loaded post "${post.title}" for editing`, 'success');
+    showToast(`Loaded post "${post.title}" for editing`, 'success');
     addToLog(`Post loaded for editing: ${post.title}`, 'info');
 }
 
@@ -1160,7 +1197,7 @@ function closeLogsModal() {
 
 function exportLogs() {
     if (activityLogs.length === 0) {
-        showMessage('No logs to export', 'warning');
+        showToast('No logs to export', 'warning');
         return;
     }
     
@@ -1178,7 +1215,7 @@ function exportLogs() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    showMessage('Logs exported successfully!', 'success');
+    showToast('Logs exported successfully!', 'success');
     addToLog('Activity logs exported', 'info');
 }
 
@@ -1190,7 +1227,7 @@ function clearLogs() {
     activityLogs = [];
     localStorage.removeItem('editor-activity-logs');
     updateLogsDisplay();
-    showMessage('Activity logs cleared', 'success');
+    showToast('Activity logs cleared', 'success');
 }
 
 // Save post to GitHub
@@ -1202,34 +1239,34 @@ async function savePost() {
 
     // Validation
     if (!token) {
-        showMessage('Please enter your GitHub Personal Access Token', 'error');
+        showToast('Please enter your GitHub Personal Access Token', 'error');
         return;
     }
 
     if (!title) {
-        showMessage('Please enter a post title', 'error');
+        showToast('Please enter a post title', 'error');
         return;
     }
 
     if (!date) {
-        showMessage('Please select a publication date', 'error');
+        showToast('Please select a publication date', 'error');
         return;
     }
 
     if (!markdown) {
-        showMessage('Please write some content for your post', 'error');
+        showToast('Please write some content for your post', 'error');
         return;
     }
 
     try {
-        showMessage(isEditing ? 'Updating post...' : 'Saving post...', 'info');
+        showToast(isEditing ? 'Updating post...' : 'Saving post...', 'info');
         
         // Handle image based on selected option
         let imageUrl = '';
         let imageSha = currentImageSha;
         
         if (currentImageOption === 'upload' && croppedImageData) {
-            showMessage('Uploading image...', 'info');
+            showToast('Uploading image...', 'info');
             // Upload cropped image to GitHub
             const imageResult = await uploadImageToGitHub(token, title, croppedImageData, imageSha);
             imageUrl = imageResult.url;
@@ -1289,7 +1326,7 @@ async function savePost() {
         const result = await response.json();
         currentPostSha = result.content.sha;
 
-        showMessage(`✨ Writing "${title}" ${isEditing ? 'updated' : 'saved'} successfully!`, 'success');
+        showToast(`✨ Writing "${title}" ${isEditing ? 'updated' : 'saved'} successfully!`, 'success');
         addToLog(`Post ${isEditing ? 'updated' : 'published'}: ${title}`, 'success');
         
         // Clear form on success for new posts
@@ -1313,7 +1350,7 @@ async function savePost() {
             errorMessage += error.message;
         }
         
-        showMessage(errorMessage, 'error');
+        showToast(errorMessage, 'error');
         addToLog(`Error ${isEditing ? 'updating' : 'saving'} post: ${error.message}`, 'error');
     }
 }
