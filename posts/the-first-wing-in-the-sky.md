@@ -1,7 +1,7 @@
 ---
 title: "The First Wing in the Sky"
 date: "2025-11-15"
-
+image: "https://raw.githubusercontent.com/ikenith/ikenith.github.io/main/images/the-first-wing-in-the-sky.jpg"
 ---
 *"Shaft from the earth, caught up in the sky."*
 
