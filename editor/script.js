@@ -4,6 +4,10 @@ let croppedImageData = null;
 let currentImageOption = 'upload';
 let currentModalImageOption = 'upload';
 let messages = [];
+let isEditing = false;
+let currentPostSha = null;
+let currentImageSha = null;
+let activityLogs = [];
 
 // Initialize the editor
 document.addEventListener('DOMContentLoaded', function() {
@@ -55,8 +59,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load any existing draft
     loadDraft();
     
+    // Load activity logs
+    loadActivityLogs();
+    
     // Show welcome message
     showMessage('Welcome to the Advanced Editor! Start writing your content.', 'info');
+    addToLog('Editor initialized', 'info');
 });
 
 // Initialize event listeners
@@ -79,6 +87,8 @@ function initializeEventListeners() {
     
     // Message sidebar toggle
     document.getElementById('toggle-messages').addEventListener('click', toggleMessageSidebar);
+    document.getElementById('close-messages').addEventListener('click', toggleMessageSidebar);
+    document.getElementById('clear-all-messages').addEventListener('click', clearAllMessages);
     
     // Draft management
     document.getElementById('save-draft').addEventListener('click', saveDraft);
@@ -91,14 +101,32 @@ function initializeEventListeners() {
     document.getElementById('save-btn').addEventListener('click', savePost);
     document.getElementById('clear-btn').addEventListener('click', clearForm);
     document.getElementById('export-btn').addEventListener('click', exportMarkdown);
+    document.getElementById('view-logs').addEventListener('click', showLogsModal);
     
     // Image modal
     document.getElementById('close-modal').addEventListener('click', closeImageModal);
     document.getElementById('cancel-image').addEventListener('click', closeImageModal);
     document.getElementById('insert-image').addEventListener('click', insertImageFromModal);
     
+    // Posts modal
+    document.getElementById('load-posts').addEventListener('click', showPostsModal);
+    document.getElementById('close-posts-modal').addEventListener('click', closePostsModal);
+    document.getElementById('cancel-posts').addEventListener('click', closePostsModal);
+    
+    // Logs modal
+    document.getElementById('close-logs-modal').addEventListener('click', closeLogsModal);
+    document.getElementById('close-logs').addEventListener('click', closeLogsModal);
+    document.getElementById('export-logs').addEventListener('click', exportLogs);
+    document.getElementById('clear-logs').addEventListener('click', clearLogs);
+    
+    // Search posts
+    document.getElementById('posts-search').addEventListener('input', searchPosts);
+    
     // Inline image upload
     document.getElementById('inline-image-upload').addEventListener('change', handleInlineImageUpload);
+    
+    // Update filename when title changes
+    document.getElementById('post-title').addEventListener('input', updateFilename);
 }
 
 // Switch between image options for featured image
@@ -220,6 +248,7 @@ function initializeImageCropping() {
         imageCropper.classList.add('hidden');
         
         showMessage('Image cropped successfully!', 'success');
+        addToLog('Image cropped for post', 'info');
     });
 
     cancelCrop.addEventListener('click', function() {
@@ -337,6 +366,7 @@ function closeImageModal() {
     document.getElementById('inline-image-url').value = '';
     document.getElementById('image-alt').value = '';
     document.getElementById('inline-image-upload').value = '';
+    delete document.getElementById('inline-image-upload').dataset.imageData;
 }
 
 // Handle inline image upload in modal
@@ -408,6 +438,7 @@ function insertImageFromModal() {
     autoSaveDraft();
     
     showMessage('Image inserted successfully!', 'success');
+    addToLog('Image inserted into content', 'info');
 }
 
 // Message system
@@ -421,13 +452,16 @@ function showMessage(message, type = 'info') {
     
     messages.unshift(messageObj);
     
-    // Limit messages to 10
-    if (messages.length > 10) {
+    // Limit messages to 20
+    if (messages.length > 20) {
         messages.pop();
     }
     
     // Update message list
     updateMessageList();
+    
+    // Show message badge if there are unread messages
+    updateMessageBadge();
     
     // Auto-remove message after 5 seconds (except for errors)
     if (type !== 'error') {
@@ -435,6 +469,9 @@ function showMessage(message, type = 'info') {
             removeMessage(messageObj.id);
         }, 5000);
     }
+    
+    // Add to activity log
+    addToLog(`Message: ${message}`, type);
 }
 
 function updateMessageList() {
@@ -447,18 +484,69 @@ function updateMessageList() {
         messageEl.innerHTML = `
             <div class="message-content">${msg.message}</div>
             <div class="message-time">${msg.timestamp}</div>
+            <button class="message-close" onclick="removeMessage(${msg.id})">&times;</button>
         `;
         messageList.appendChild(messageEl);
     });
+    
+    // Update message count
+    document.getElementById('message-count').textContent = messages.length;
 }
 
 function removeMessage(id) {
     messages = messages.filter(msg => msg.id !== id);
     updateMessageList();
+    updateMessageBadge();
+}
+
+function clearAllMessages() {
+    messages = [];
+    updateMessageList();
+    updateMessageBadge();
+    showMessage('All messages cleared', 'info');
+}
+
+function updateMessageBadge() {
+    const badge = document.getElementById('message-badge');
+    if (messages.length > 0) {
+        badge.textContent = messages.length;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
 }
 
 function toggleMessageSidebar() {
-    document.getElementById('message-sidebar').classList.toggle('active');
+    const sidebar = document.getElementById('message-sidebar');
+    sidebar.classList.toggle('active');
+}
+
+// Toggle preview panel
+function togglePreview() {
+    const previewPanel = document.getElementById('preview-panel');
+    const toggleBtn = document.getElementById('toggle-preview');
+    const toggleText = toggleBtn.querySelector('span');
+    
+    if (previewPanel.classList.contains('hidden-mobile')) {
+        previewPanel.classList.remove('hidden-mobile');
+        toggleText.textContent = 'Hide Preview';
+        addToLog('Preview panel shown', 'info');
+    } else {
+        previewPanel.classList.add('hidden-mobile');
+        toggleText.textContent = 'Show Preview';
+        addToLog('Preview panel hidden', 'info');
+    }
+}
+
+// Update filename based on title
+function updateFilename() {
+    const title = document.getElementById('post-title').value.trim();
+    if (title && !isEditing) {
+        const filename = title.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '') + '.md';
+        document.getElementById('post-filename').value = filename;
+    }
 }
 
 // Draft management
@@ -478,6 +566,7 @@ function autoSaveDraft() {
 function saveDraft() {
     autoSaveDraft();
     showMessage('Draft saved successfully!', 'success');
+    addToLog('Draft saved locally', 'info');
 }
 
 function loadDraft() {
@@ -503,15 +592,11 @@ function loadDraft() {
         document.getElementById('md-preview').innerHTML = marked.parse(draft.content || '*Start writing to see preview...*');
         
         showMessage('Draft loaded successfully!', 'success');
+        addToLog('Draft loaded from local storage', 'info');
     } catch (error) {
         showMessage('Error loading draft: ' + error.message, 'error');
+        addToLog(`Error loading draft: ${error.message}`, 'error');
     }
-}
-
-// Toggle preview panel
-function togglePreview() {
-    const previewPanel = document.querySelector('.preview-panel');
-    previewPanel.classList.toggle('hidden');
 }
 
 // Clear form
@@ -527,6 +612,8 @@ function clearForm() {
     document.getElementById('md-input').value = '';
     document.getElementById('url-preview').classList.add('hidden');
     document.getElementById('md-preview').innerHTML = marked.parse('*Start writing to see preview...*');
+    document.getElementById('post-filename').value = '';
+    document.getElementById('filename-group').classList.add('hidden');
     
     // Clear image cropper
     document.getElementById('image-cropper').classList.add('hidden');
@@ -538,10 +625,17 @@ function clearForm() {
         cropper = null;
     }
     
+    // Reset editing state
+    isEditing = false;
+    currentPostSha = null;
+    currentImageSha = null;
+    document.getElementById('save-btn-text').textContent = 'Publish Writing';
+    
     // Clear draft
     localStorage.removeItem('editor-draft');
     
     showMessage('Form cleared', 'success');
+    addToLog('Editor form cleared', 'info');
 }
 
 // Export markdown
@@ -578,6 +672,282 @@ function exportMarkdown() {
     URL.revokeObjectURL(url);
     
     showMessage('Markdown exported successfully!', 'success');
+    addToLog(`Markdown exported: ${title || 'untitled'}`, 'info');
+}
+
+// Load and edit existing posts
+async function showPostsModal() {
+    const token = document.getElementById('github-token').value.trim();
+    if (!token) {
+        showMessage('Please enter your GitHub Personal Access Token first', 'error');
+        return;
+    }
+    
+    document.getElementById('posts-modal').classList.remove('hidden');
+    await loadPostsList(token);
+}
+
+async function loadPostsList(token) {
+    const postsList = document.getElementById('posts-list');
+    postsList.innerHTML = '<div class="loading-text">Loading posts...</div>';
+    
+    try {
+        const repo = 'ikenith/ikenith.github.io';
+        const response = await fetch(
+            `https://api.github.com/repos/${repo}/contents/posts`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        const files = await response.json();
+        const markdownFiles = files.filter(file => file.name.endsWith('.md'));
+        
+        if (markdownFiles.length === 0) {
+            postsList.innerHTML = '<div class="loading-text">No posts found.</div>';
+            return;
+        }
+        
+        // Load each post to get metadata
+        const posts = [];
+        for (const file of markdownFiles) {
+            try {
+                const postResponse = await fetch(file.download_url);
+                const content = await postResponse.text();
+                
+                // Extract frontmatter
+                const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+                if (frontmatterMatch) {
+                    const frontmatter = frontmatterMatch[1];
+                    const titleMatch = frontmatter.match(/title:\s*["']?([^"']+)["']?/);
+                    const dateMatch = frontmatter.match(/date:\s*["']?([^"']+)["']?/);
+                    
+                    posts.push({
+                        name: file.name,
+                        title: titleMatch ? titleMatch[1] : file.name,
+                        date: dateMatch ? dateMatch[1] : 'Unknown date',
+                        sha: file.sha,
+                        content: content
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading post:', file.name, error);
+            }
+        }
+        
+        displayPostsList(posts);
+        
+    } catch (error) {
+        console.error('Error loading posts:', error);
+        postsList.innerHTML = `<div class="loading-text">Error loading posts: ${error.message}</div>`;
+        showMessage('Error loading posts: ' + error.message, 'error');
+    }
+}
+
+function displayPostsList(posts) {
+    const postsList = document.getElementById('posts-list');
+    const searchTerm = document.getElementById('posts-search').value.toLowerCase();
+    
+    const filteredPosts = posts.filter(post => 
+        post.title.toLowerCase().includes(searchTerm) ||
+        post.date.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filteredPosts.length === 0) {
+        postsList.innerHTML = '<div class="loading-text">No posts match your search.</div>';
+        return;
+    }
+    
+    postsList.innerHTML = '';
+    
+    filteredPosts.forEach(post => {
+        const postItem = document.createElement('div');
+        postItem.className = 'post-item';
+        postItem.innerHTML = `
+            <div class="post-title">${post.title}</div>
+            <div class="post-meta">
+                <span>${post.date}</span>
+                <span>${post.name}</span>
+            </div>
+        `;
+        postItem.addEventListener('click', () => loadPostForEditing(post));
+        postsList.appendChild(postItem);
+    });
+}
+
+function loadPostForEditing(post) {
+    // Extract content (remove frontmatter)
+    const content = post.content.replace(/^---\n[\s\S]*?\n---\n/, '');
+    
+    // Extract image from frontmatter if exists
+    const imageMatch = post.content.match(/image:\s*["']?([^"'\n]+)["']?/);
+    const imageUrl = imageMatch ? imageMatch[1] : '';
+    
+    // Populate form
+    document.getElementById('post-title').value = post.title;
+    document.getElementById('post-date').value = post.date;
+    document.getElementById('md-input').value = content;
+    document.getElementById('post-filename').value = post.name;
+    
+    // Handle image
+    if (imageUrl) {
+        if (imageUrl.includes('raw.githubusercontent.com')) {
+            // This is an uploaded image
+            switchImageTab('upload');
+            // We can't easily get the cropped data back, so we'll just show the URL
+            document.getElementById('post-image-url').value = imageUrl;
+            document.getElementById('url-preview').src = imageUrl;
+            document.getElementById('url-preview').classList.remove('hidden');
+        } else {
+            // External URL
+            switchImageTab('url');
+            document.getElementById('post-image-url').value = imageUrl;
+            document.getElementById('url-preview').src = imageUrl;
+            document.getElementById('url-preview').classList.remove('hidden');
+        }
+    } else {
+        switchImageTab('none');
+    }
+    
+    // Update preview
+    document.getElementById('md-preview').innerHTML = marked.parse(content);
+    
+    // Set editing state
+    isEditing = true;
+    currentPostSha = post.sha;
+    document.getElementById('save-btn-text').textContent = 'Update Writing';
+    document.getElementById('filename-group').classList.remove('hidden');
+    
+    // Close modal
+    closePostsModal();
+    
+    showMessage(`Loaded post "${post.title}" for editing`, 'success');
+    addToLog(`Post loaded for editing: ${post.title}`, 'info');
+}
+
+function searchPosts() {
+    const postsList = document.getElementById('posts-list');
+    const existingPosts = Array.from(postsList.querySelectorAll('.post-item')).map(item => {
+        return {
+            title: item.querySelector('.post-title').textContent,
+            date: item.querySelector('.post-meta span:first-child').textContent,
+            name: item.querySelector('.post-meta span:last-child').textContent
+        };
+    });
+    
+    if (existingPosts.length > 0) {
+        displayPostsList(existingPosts);
+    }
+}
+
+function closePostsModal() {
+    document.getElementById('posts-modal').classList.add('hidden');
+}
+
+// Activity logs
+function loadActivityLogs() {
+    const logsData = localStorage.getItem('editor-activity-logs');
+    if (logsData) {
+        activityLogs = JSON.parse(logsData);
+    } else {
+        activityLogs = [];
+    }
+    updateLogsDisplay();
+}
+
+function addToLog(message, type = 'info') {
+    const logEntry = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        message,
+        type
+    };
+    
+    activityLogs.unshift(logEntry);
+    
+    // Limit logs to 100 entries
+    if (activityLogs.length > 100) {
+        activityLogs.pop();
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('editor-activity-logs', JSON.stringify(activityLogs));
+    
+    // Update display if logs modal is open
+    if (!document.getElementById('logs-modal').classList.contains('hidden')) {
+        updateLogsDisplay();
+    }
+}
+
+function updateLogsDisplay() {
+    const logsList = document.getElementById('logs-list');
+    logsList.innerHTML = '';
+    
+    if (activityLogs.length === 0) {
+        logsList.innerHTML = '<div class="loading-text">No activity logs yet.</div>';
+        return;
+    }
+    
+    activityLogs.forEach(log => {
+        const logItem = document.createElement('div');
+        logItem.className = `log-item log-${log.type}`;
+        logItem.innerHTML = `
+            <div class="log-time">${new Date(log.timestamp).toLocaleString()}</div>
+            <div class="log-message">${log.message}</div>
+        `;
+        logsList.appendChild(logItem);
+    });
+}
+
+function showLogsModal() {
+    document.getElementById('logs-modal').classList.remove('hidden');
+    updateLogsDisplay();
+}
+
+function closeLogsModal() {
+    document.getElementById('logs-modal').classList.add('hidden');
+}
+
+function exportLogs() {
+    if (activityLogs.length === 0) {
+        showMessage('No logs to export', 'warning');
+        return;
+    }
+    
+    const logText = activityLogs.map(log => 
+        `[${new Date(log.timestamp).toLocaleString()}] ${log.type.toUpperCase()}: ${log.message}`
+    ).join('\n');
+    
+    const blob = new Blob([logText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `editor-logs-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showMessage('Logs exported successfully!', 'success');
+    addToLog('Activity logs exported', 'info');
+}
+
+function clearLogs() {
+    if (!confirm('Are you sure you want to clear all activity logs? This action cannot be undone.')) {
+        return;
+    }
+    
+    activityLogs = [];
+    localStorage.removeItem('editor-activity-logs');
+    updateLogsDisplay();
+    showMessage('Activity logs cleared', 'success');
 }
 
 // Save post to GitHub
@@ -609,15 +979,18 @@ async function savePost() {
     }
 
     try {
-        showMessage('Saving post...', 'info');
+        showMessage(isEditing ? 'Updating post...' : 'Saving post...', 'info');
         
         // Handle image based on selected option
         let imageUrl = '';
+        let imageSha = currentImageSha;
         
         if (currentImageOption === 'upload' && croppedImageData) {
             showMessage('Uploading image...', 'info');
             // Upload cropped image to GitHub
-            imageUrl = await uploadImageToGitHub(token, title, croppedImageData);
+            const imageResult = await uploadImageToGitHub(token, title, croppedImageData, imageSha);
+            imageUrl = imageResult.url;
+            imageSha = imageResult.sha;
         } else if (currentImageOption === 'url') {
             // Use provided URL
             const urlInput = document.getElementById('post-image-url').value.trim();
@@ -626,10 +999,12 @@ async function savePost() {
             }
         }
 
-        // Create filename from title
-        const filename = title.toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)+/g, '') + '.md';
+        // Create filename
+        const filename = isEditing ? 
+            document.getElementById('post-filename').value :
+            title.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)+/g, '') + '.md';
 
         // Create frontmatter
         const frontmatter = [
@@ -645,27 +1020,6 @@ async function savePost() {
         const filePath = `posts/${filename}`;
         const repo = 'ikenith/ikenith.github.io';
 
-        // Check if file exists to get SHA (for updates)
-        let sha = null;
-        try {
-            const existingFile = await fetch(
-                `https://api.github.com/repos/${repo}/contents/${filePath}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                }
-            );
-            
-            if (existingFile.ok) {
-                const fileData = await existingFile.json();
-                sha = fileData.sha;
-            }
-        } catch (error) {
-            // File doesn't exist, which is fine for new posts
-        }
-
         // Create or update file
         const response = await fetch(
             `https://api.github.com/repos/${repo}/contents/${filePath}`,
@@ -677,9 +1031,9 @@ async function savePost() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: `Add post: ${title}`,
+                    message: isEditing ? `Update post: ${title}` : `Add post: ${title}`,
                     content: btoa(unescape(encodeURIComponent(content))),
-                    sha: sha
+                    sha: currentPostSha
                 })
             }
         );
@@ -689,19 +1043,25 @@ async function savePost() {
             throw new Error(errorData.message || `GitHub API error: ${response.status}`);
         }
 
-        showMessage(`✨ Writing "${title}" saved successfully!`, 'success');
+        const result = await response.json();
+        currentPostSha = result.content.sha;
+
+        showMessage(`✨ Writing "${title}" ${isEditing ? 'updated' : 'saved'} successfully!`, 'success');
+        addToLog(`Post ${isEditing ? 'updated' : 'published'}: ${title}`, 'success');
         
-        // Clear form on success
-        setTimeout(() => {
-            clearForm();
-            // Clear draft after successful publish
-            localStorage.removeItem('editor-draft');
-        }, 2000);
+        // Clear form on success for new posts
+        if (!isEditing) {
+            setTimeout(() => {
+                clearForm();
+                // Clear draft after successful publish
+                localStorage.removeItem('editor-draft');
+            }, 2000);
+        }
         
     } catch (error) {
         console.error('Error saving post:', error);
         
-        let errorMessage = 'Failed to save writing: ';
+        let errorMessage = `Failed to ${isEditing ? 'update' : 'save'} writing: `;
         if (error.message.includes('401') || error.message.includes('Bad credentials')) {
             errorMessage += 'Invalid token. Please check your GitHub Personal Access Token.';
         } else if (error.message.includes('403')) {
@@ -713,11 +1073,12 @@ async function savePost() {
         }
         
         showMessage(errorMessage, 'error');
+        addToLog(`Error ${isEditing ? 'updating' : 'saving'} post: ${error.message}`, 'error');
     }
 }
 
 // Upload image to GitHub
-async function uploadImageToGitHub(token, title, imageData) {
+async function uploadImageToGitHub(token, title, imageData, existingSha = null) {
     const repo = 'ikenith/ikenith.github.io';
     
     // Convert data URL to blob
@@ -749,8 +1110,9 @@ async function uploadImageToGitHub(token, title, imageData) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: `Add image for post: ${title}`,
-                content: base64
+                message: isEditing ? `Update image for post: ${title}` : `Add image for post: ${title}`,
+                content: base64,
+                sha: existingSha
             })
         }
     );
@@ -760,6 +1122,11 @@ async function uploadImageToGitHub(token, title, imageData) {
         throw new Error(`Image upload failed: ${errorData.message}`);
     }
 
-    // Return the raw GitHub URL for the image
-    return `https://raw.githubusercontent.com/${repo}/main/${imagePath}`;
+    const result = await imageResponse.json();
+    
+    // Return the raw GitHub URL for the image and the new SHA
+    return {
+        url: `https://raw.githubusercontent.com/${repo}/main/${imagePath}`,
+        sha: result.content.sha
+    };
 }
