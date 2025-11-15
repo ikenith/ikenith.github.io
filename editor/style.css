@@ -653,12 +653,6 @@ body {
   transform: translateY(-1px);
 }
 
-.image-insert-btn {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-  font-weight: 500;
-}
-
 /* Editor Textarea */
 .editor-textarea-container textarea {
   width: 100%;
@@ -1126,6 +1120,68 @@ body {
   display: none !important;
 }
 
+/* Selected image name in modal */
+.selected-image-name {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Has image indicator in posts list */
+.has-image {
+  color: var(--success);
+  font-weight: 500;
+}
+
+/* Modal file input improvements */
+.modal .file-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.modal .file-input-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px dashed var(--border-color);
+  text-align: center;
+}
+
+.modal .file-input-button:hover {
+  background: #2a2e32;
+  border-color: var(--accent);
+}
+
+.modal .file-input-wrapper input[type="file"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* Remove the old image insert button from toolbar */
+.image-insert-btn {
+  display: none;
+}
+
+/* Ensure preview panel transitions work */
+.preview-panel {
+  transition: all 0.3s ease;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .editor-container {
@@ -1146,6 +1202,12 @@ body {
     width: 100%;
     justify-content: space-between;
     flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .header-actions .btn-secondary {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
   }
   
   .metadata-grid {

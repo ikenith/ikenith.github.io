@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configure marked options
     marked.setOptions({
         highlight: function(code, lang) {
-            // In a real implementation, you might want to use a proper syntax highlighter
             return code;
         },
         breaks: true,
@@ -34,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     input.addEventListener('input', () => {
         preview.innerHTML = marked.parse(input.value || '*Start writing to see preview...*');
-        // Auto-save draft on content change if we have a current draft
         if (currentDraftId) {
             autoSaveCurrentDraft();
         }
@@ -161,12 +159,10 @@ function showToast(message, type = 'info') {
     
     toastContainer.appendChild(toast);
     
-    // Auto-remove toast after 5 seconds
     setTimeout(() => {
         removeToast(toastId);
     }, 5000);
     
-    // Add to message history
     addToMessageHistory(message, type);
 }
 
@@ -193,18 +189,12 @@ function addToMessageHistory(message, type = 'info') {
     
     messages.unshift(messageObj);
     
-    // Limit messages to 50
     if (messages.length > 50) {
         messages.pop();
     }
     
-    // Update message list
     updateMessageList();
-    
-    // Show message badge if there are unread messages
     updateMessageBadge();
-    
-    // Add to activity log
     addToLog(`Message: ${message}`, type);
 }
 
@@ -223,7 +213,6 @@ function updateMessageList() {
         messageList.appendChild(messageEl);
     });
     
-    // Update message count
     document.getElementById('message-count').textContent = messages.length;
 }
 
@@ -259,7 +248,6 @@ function toggleMessageSidebar() {
 function switchImageTab(option) {
     currentImageOption = option;
     
-    // Update tabs
     document.querySelectorAll('.image-tab:not([data-modal-option])').forEach(tab => {
         tab.classList.remove('active');
         if (tab.getAttribute('data-option') === option) {
@@ -267,16 +255,21 @@ function switchImageTab(option) {
         }
     });
     
-    // Show/hide options
     document.getElementById('upload-option').classList.toggle('hidden', option !== 'upload');
     document.getElementById('url-option').classList.toggle('hidden', option !== 'url');
+    
+    // Clear image data when switching to none
+    if (option === 'none') {
+        croppedImageData = null;
+        document.getElementById('post-image-url').value = '';
+        document.getElementById('url-preview').classList.add('hidden');
+    }
 }
 
 // Switch between image options in modal
 function switchModalImageTab(option) {
     currentModalImageOption = option;
     
-    // Update tabs
     document.querySelectorAll('[data-modal-option]').forEach(tab => {
         tab.classList.remove('active');
         if (tab.getAttribute('data-modal-option') === option) {
@@ -284,7 +277,6 @@ function switchModalImageTab(option) {
         }
     });
     
-    // Show/hide options
     document.getElementById('modal-upload').classList.toggle('hidden', option !== 'upload');
     document.getElementById('modal-url').classList.toggle('hidden', option !== 'url');
 }
@@ -312,13 +304,11 @@ function initializeImageCropping() {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Check if file is an image
         if (!file.type.match('image.*')) {
             showToast('Please select an image file', 'error');
             return;
         }
 
-        // Check file size (max 10MB)
         if (file.size > 10 * 1024 * 1024) {
             showToast('Image size should be less than 10MB', 'error');
             return;
@@ -329,12 +319,10 @@ function initializeImageCropping() {
             cropImage.src = event.target.result;
             imageCropper.classList.remove('hidden');
             
-            // Destroy existing cropper
             if (cropper) {
                 cropper.destroy();
             }
             
-            // Initialize cropper
             cropper = new Cropper(cropImage, {
                 aspectRatio: 16 / 9,
                 viewMode: 1,
@@ -356,21 +344,17 @@ function initializeImageCropping() {
     cropBtn.addEventListener('click', function() {
         if (!cropper) return;
 
-        // Get cropped canvas
         const canvas = cropper.getCroppedCanvas({
             width: 1200,
             height: 675,
             imageSmoothingQuality: 'high'
         });
 
-        // Convert to data URL
         croppedImageData = canvas.toDataURL('image/jpeg', 0.85);
         
-        // Show preview
         document.getElementById('cropped-image').src = croppedImageData;
         croppedPreview.classList.remove('hidden');
         
-        // Hide cropper
         imageCropper.classList.add('hidden');
         
         showToast('Image cropped successfully!', 'success');
@@ -427,12 +411,12 @@ function formatText(type) {
         case 'link':
             before = '[';
             after = '](url)';
-            cursorOffset = -5; // Position cursor inside the URL placeholder
+            cursorOffset = -5;
             break;
         case 'image':
             before = '![';
             after = '](image-url)';
-            cursorOffset = -12; // Position cursor inside the alt text
+            cursorOffset = -12;
             break;
         case 'code':
             before = '`';
@@ -458,7 +442,6 @@ function formatText(type) {
     
     let insertText = before + selected + after;
     
-    // If nothing is selected and we're adding a list/heading/quote, just add the prefix
     if (!selected && (type === 'ul' || type === 'ol' || type === 'h1' || type === 'h2' || type === 'h3' || type === 'quote')) {
         insertText = before;
     }
@@ -466,17 +449,14 @@ function formatText(type) {
     input.value = value.substring(0, start) + insertText + value.substring(end);
     input.focus();
     
-    // Set cursor position
     let cursorPos = start + insertText.length;
     if (cursorOffset) {
         cursorPos += cursorOffset;
     }
     input.setSelectionRange(cursorPos, cursorPos);
     
-    // Update preview
     document.getElementById('md-preview').innerHTML = marked.parse(input.value);
     
-    // Auto-save draft if we have a current draft
     if (currentDraftId) {
         autoSaveCurrentDraft();
     }
@@ -490,10 +470,10 @@ function insertImage() {
 // Close image modal
 function closeImageModal() {
     document.getElementById('image-modal').classList.add('hidden');
-    // Reset modal fields
     document.getElementById('inline-image-url').value = '';
     document.getElementById('image-alt').value = '';
     document.getElementById('inline-image-upload').value = '';
+    document.getElementById('selected-image-name').textContent = '';
     delete document.getElementById('inline-image-upload').dataset.imageData;
 }
 
@@ -502,21 +482,21 @@ function handleInlineImageUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check if file is an image
     if (!file.type.match('image.*')) {
         showToast('Please select an image file', 'error');
         return;
     }
 
-    // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
         showToast('Image size should be less than 10MB', 'error');
         return;
     }
 
+    // Show selected file name
+    document.getElementById('selected-image-name').textContent = `Selected: ${file.name}`;
+
     const reader = new FileReader();
     reader.onload = function(event) {
-        // Store the image data for insertion
         document.getElementById('inline-image-upload').dataset.imageData = event.target.result;
     };
     reader.readAsDataURL(file);
@@ -534,8 +514,7 @@ function insertImageFromModal() {
             return;
         }
         
-        // In a real implementation, you would upload the image and get a URL
-        // For now, we'll use a data URL (not recommended for production)
+        // For now, use data URL - in production, upload to hosting service
         imageUrl = imageData;
         showToast('Note: For production use, upload images to a proper hosting service', 'warning');
     } else {
@@ -546,7 +525,6 @@ function insertImageFromModal() {
         }
     }
     
-    // Insert markdown for image
     const input = document.getElementById('md-input');
     const start = input.selectionStart;
     const value = input.value;
@@ -556,13 +534,10 @@ function insertImageFromModal() {
     input.value = value.substring(0, start) + imageMarkdown + value.substring(input.selectionEnd);
     input.focus();
     
-    // Update preview
     document.getElementById('md-preview').innerHTML = marked.parse(input.value);
     
-    // Close modal
     closeImageModal();
     
-    // Auto-save draft if we have a current draft
     if (currentDraftId) {
         autoSaveCurrentDraft();
     }
@@ -618,7 +593,6 @@ function showSaveDraftModal() {
     const title = document.getElementById('post-title').value.trim();
     const draftNameInput = document.getElementById('draft-name');
     
-    // Pre-fill with title if available, otherwise keep current name
     if (title && !draftNameInput.value) {
         draftNameInput.value = title;
     }
@@ -640,9 +614,7 @@ function saveDraftWithName() {
     
     const draftData = getCurrentEditorData();
     
-    // Create or update draft
     if (currentDraftId) {
-        // Update existing draft
         const draftIndex = drafts.findIndex(d => d.id === currentDraftId);
         if (draftIndex !== -1) {
             drafts[draftIndex] = {
@@ -655,7 +627,6 @@ function saveDraftWithName() {
             addToLog(`Draft updated: ${draftName}`, 'info');
         }
     } else {
-        // Create new draft
         const newDraft = {
             id: 'draft-' + Date.now(),
             name: draftName,
@@ -697,9 +668,11 @@ function getCurrentEditorData() {
         content: document.getElementById('md-input').value,
         imageOption: currentImageOption,
         imageUrl: document.getElementById('post-image-url').value,
+        croppedImageData: croppedImageData,
         filename: document.getElementById('post-filename').value,
         isEditing: isEditing,
-        postSha: currentPostSha
+        postSha: currentPostSha,
+        imageSha: currentImageSha
     };
 }
 
@@ -788,7 +761,13 @@ function loadDraft(draftId) {
     // Handle image
     if (data.imageOption) {
         switchImageTab(data.imageOption);
-        if (data.imageUrl && data.imageOption === 'url') {
+        
+        if (data.imageOption === 'upload' && data.croppedImageData) {
+            croppedImageData = data.croppedImageData;
+            document.getElementById('cropped-image').src = croppedImageData;
+            document.getElementById('cropped-preview').classList.remove('hidden');
+        } else if (data.imageOption === 'url' && data.imageUrl) {
+            document.getElementById('post-image-url').value = data.imageUrl;
             document.getElementById('url-preview').src = data.imageUrl;
             document.getElementById('url-preview').classList.remove('hidden');
         }
@@ -797,6 +776,7 @@ function loadDraft(draftId) {
     // Update editing state
     isEditing = data.isEditing || false;
     currentPostSha = data.postSha || null;
+    currentImageSha = data.imageSha || null;
     document.getElementById('save-btn-text').textContent = isEditing ? 'Update Writing' : 'Publish Writing';
     document.getElementById('filename-group').classList.toggle('hidden', !isEditing);
     
@@ -807,7 +787,6 @@ function loadDraft(draftId) {
     currentDraftId = draftId;
     updateCurrentDraftInfo();
     
-    // Close modal
     closeLoadDraftModal();
     
     showToast(`Loaded draft "${draft.name}"`, 'success');
@@ -822,7 +801,6 @@ function deleteDraft(draftId) {
     const draft = drafts.find(d => d.id === draftId);
     drafts = drafts.filter(d => d.id !== draftId);
     
-    // If we're deleting the current draft, clear it
     if (currentDraftId === draftId) {
         clearCurrentDraft();
     }
@@ -902,6 +880,9 @@ function clearForm() {
         cropper = null;
     }
     
+    // Reset image option
+    switchImageTab('upload');
+    
     // Reset editing state
     isEditing = false;
     currentPostSha = null;
@@ -926,7 +907,6 @@ function exportMarkdown() {
         return;
     }
     
-    // Create frontmatter
     const frontmatter = [
         '---',
         `title: "${title || 'Untitled'}"`,
@@ -937,7 +917,6 @@ function exportMarkdown() {
     
     const fullContent = frontmatter + content;
     
-    // Create download
     const blob = new Blob([fullContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -992,24 +971,24 @@ async function loadPostsList(token) {
             return;
         }
         
-        // Load each post to get metadata
         const posts = [];
         for (const file of markdownFiles) {
             try {
                 const postResponse = await fetch(file.download_url);
                 const content = await postResponse.text();
                 
-                // Extract frontmatter
                 const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
                 if (frontmatterMatch) {
                     const frontmatter = frontmatterMatch[1];
                     const titleMatch = frontmatter.match(/title:\s*["']?([^"']+)["']?/);
                     const dateMatch = frontmatter.match(/date:\s*["']?([^"']+)["']?/);
+                    const imageMatch = frontmatter.match(/image:\s*["']?([^"'\n]+)["']?/);
                     
                     posts.push({
                         name: file.name,
                         title: titleMatch ? titleMatch[1] : file.name,
                         date: dateMatch ? dateMatch[1] : 'Unknown date',
+                        image: imageMatch ? imageMatch[1] : null,
                         sha: file.sha,
                         content: content
                     });
@@ -1052,6 +1031,7 @@ function displayPostsList(posts) {
             <div class="post-meta">
                 <span>${post.date}</span>
                 <span>${post.name}</span>
+                ${post.image ? '<span class="has-image">📷 Has Image</span>' : ''}
             </div>
         `;
         postItem.addEventListener('click', () => loadPostForEditing(post));
@@ -1063,34 +1043,41 @@ function loadPostForEditing(post) {
     // Extract content (remove frontmatter)
     const content = post.content.replace(/^---\n[\s\S]*?\n---\n/, '');
     
-    // Extract image from frontmatter if exists
-    const imageMatch = post.content.match(/image:\s*["']?([^"'\n]+)["']?/);
-    const imageUrl = imageMatch ? imageMatch[1] : '';
-    
     // Populate form
     document.getElementById('post-title').value = post.title;
     document.getElementById('post-date').value = post.date;
     document.getElementById('md-input').value = content;
     document.getElementById('post-filename').value = post.name;
     
+    // Reset image SHA - always start with null for new images
+    currentImageSha = null;
+    
     // Handle image
-    if (imageUrl) {
-        if (imageUrl.includes('raw.githubusercontent.com')) {
-            // This is an uploaded image
+    if (post.image) {
+        // Check if it's a GitHub raw URL (uploaded image)
+        if (post.image.includes('raw.githubusercontent.com')) {
             switchImageTab('upload');
-            // We can't easily get the cropped data back, so we'll just show the URL
-            document.getElementById('post-image-url').value = imageUrl;
-            document.getElementById('url-preview').src = imageUrl;
+            // For uploaded images, we can't get the cropped data back, so we show the URL
+            document.getElementById('post-image-url').value = post.image;
+            document.getElementById('url-preview').src = post.image;
             document.getElementById('url-preview').classList.remove('hidden');
+            
+            // Store the image URL for potential updating
+            croppedImageData = null;
+            
+            // Try to get the image SHA for future updates
+            getImageShaFromUrl(post.image);
         } else {
             // External URL
             switchImageTab('url');
-            document.getElementById('post-image-url').value = imageUrl;
-            document.getElementById('url-preview').src = imageUrl;
+            document.getElementById('post-image-url').value = post.image;
+            document.getElementById('url-preview').src = post.image;
             document.getElementById('url-preview').classList.remove('hidden');
+            currentImageSha = null;
         }
     } else {
         switchImageTab('none');
+        currentImageSha = null;
     }
     
     // Update preview
@@ -1105,11 +1092,48 @@ function loadPostForEditing(post) {
     // Clear current draft when loading a post
     clearCurrentDraft();
     
-    // Close modal
     closePostsModal();
     
     showToast(`Loaded post "${post.title}" for editing`, 'success');
     addToLog(`Post loaded for editing: ${post.title}`, 'info');
+}
+
+// Get image SHA from GitHub URL
+async function getImageShaFromUrl(imageUrl) {
+    const token = document.getElementById('github-token').value.trim();
+    if (!token) return;
+    
+    try {
+        // Extract image path from URL
+        // URL format: https://raw.githubusercontent.com/ikenith/ikenith.github.io/main/images/filename.jpg
+        const urlParts = imageUrl.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const imagePath = `images/${filename}`;
+        
+        const repo = 'ikenith/ikenith.github.io';
+        const response = await fetch(
+            `https://api.github.com/repos/${repo}/contents/${imagePath}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (response.ok) {
+            const imageData = await response.json();
+            currentImageSha = imageData.sha;
+            addToLog(`Retrieved image SHA for: ${filename}`, 'info');
+        } else {
+            currentImageSha = null;
+            addToLog(`Could not retrieve image SHA for: ${filename}`, 'warning');
+        }
+    } catch (error) {
+        console.error('Error getting image SHA:', error);
+        currentImageSha = null;
+        addToLog(`Error getting image SHA: ${error.message}`, 'error');
+    }
 }
 
 function searchPosts() {
@@ -1118,7 +1142,7 @@ function searchPosts() {
         return {
             title: item.querySelector('.post-title').textContent,
             date: item.querySelector('.post-meta span:first-child').textContent,
-            name: item.querySelector('.post-meta span:last-child').textContent
+            name: item.querySelector('.post-meta span:nth-child(2)').textContent
         };
     });
     
@@ -1152,15 +1176,12 @@ function addToLog(message, type = 'info') {
     
     activityLogs.unshift(logEntry);
     
-    // Limit logs to 100 entries
     if (activityLogs.length > 100) {
         activityLogs.pop();
     }
     
-    // Save to localStorage
     localStorage.setItem('editor-activity-logs', JSON.stringify(activityLogs));
     
-    // Update display if logs modal is open
     if (!document.getElementById('logs-modal').classList.contains('hidden')) {
         updateLogsDisplay();
     }
@@ -1230,7 +1251,7 @@ function clearLogs() {
     showToast('Activity logs cleared', 'success');
 }
 
-// Save post to GitHub
+// Save post to GitHub - FIXED: Better SHA handling
 async function savePost() {
     const token = document.getElementById('github-token').value.trim();
     const title = document.getElementById('post-title').value.trim();
@@ -1265,18 +1286,26 @@ async function savePost() {
         let imageUrl = '';
         let imageSha = currentImageSha;
         
+        // Only use imageSha if it's a valid string
+        if (!imageSha || imageSha === 'null' || imageSha === 'undefined') {
+            imageSha = null;
+        }
+        
         if (currentImageOption === 'upload' && croppedImageData) {
             showToast('Uploading image...', 'info');
-            // Upload cropped image to GitHub
+            console.log('Starting image upload with SHA:', imageSha);
             const imageResult = await uploadImageToGitHub(token, title, croppedImageData, imageSha);
             imageUrl = imageResult.url;
             imageSha = imageResult.sha;
+            currentImageSha = imageSha; // Update the current image SHA
         } else if (currentImageOption === 'url') {
-            // Use provided URL
             const urlInput = document.getElementById('post-image-url').value.trim();
             if (urlInput && isValidUrl(urlInput)) {
                 imageUrl = urlInput;
             }
+        } else if (currentImageOption === 'none') {
+            // Explicitly no image
+            imageUrl = '';
         }
 
         // Create filename
@@ -1300,6 +1329,19 @@ async function savePost() {
         const filePath = `posts/${filename}`;
         const repo = 'ikenith/ikenith.github.io';
 
+        // Prepare post request body
+        const postRequestBody = {
+            message: isEditing ? `Update post: ${title}` : `Add post: ${title}`,
+            content: btoa(unescape(encodeURIComponent(content)))
+        };
+
+        // Only include SHA if we have a valid one for post updates
+        if (currentPostSha && currentPostSha !== 'null' && currentPostSha !== 'undefined') {
+            postRequestBody.sha = currentPostSha;
+        }
+
+        console.log('Post request body:', JSON.stringify(postRequestBody, null, 2));
+
         // Create or update file
         const response = await fetch(
             `https://api.github.com/repos/${repo}/contents/${filePath}`,
@@ -1310,11 +1352,7 @@ async function savePost() {
                     'Accept': 'application/vnd.github.v3+json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    message: isEditing ? `Update post: ${title}` : `Add post: ${title}`,
-                    content: btoa(unescape(encodeURIComponent(content))),
-                    sha: currentPostSha
-                })
+                body: JSON.stringify(postRequestBody)
             }
         );
 
@@ -1329,7 +1367,6 @@ async function savePost() {
         showToast(`✨ Writing "${title}" ${isEditing ? 'updated' : 'saved'} successfully!`, 'success');
         addToLog(`Post ${isEditing ? 'updated' : 'published'}: ${title}`, 'success');
         
-        // Clear form on success for new posts
         if (!isEditing) {
             setTimeout(() => {
                 clearForm();
@@ -1355,29 +1392,68 @@ async function savePost() {
     }
 }
 
-// Upload image to GitHub
+// Upload image to GitHub - FIXED: Check if image exists and get SHA if needed
 async function uploadImageToGitHub(token, title, imageData, existingSha = null) {
     const repo = 'ikenith/ikenith.github.io';
     
-    // Convert data URL to blob
     const response = await fetch(imageData);
     const blob = await response.blob();
     
-    // Convert blob to base64
     const base64 = await new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result.split(',')[1]);
         reader.readAsDataURL(blob);
     });
 
-    // Create filename for image
     const imageFilename = title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '') + '.jpg';
 
     const imagePath = `images/${imageFilename}`;
 
-    // Upload image
+    // First, check if the image already exists to get its SHA
+    let finalSha = existingSha;
+    
+    // If we don't have a SHA but we're in editing mode, try to get the SHA
+    if (!finalSha && isEditing) {
+        try {
+            const checkResponse = await fetch(
+                `https://api.github.com/repos/${repo}/contents/${imagePath}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                }
+            );
+            
+            if (checkResponse.ok) {
+                const existingImageData = await checkResponse.json();
+                finalSha = existingImageData.sha;
+                console.log('Found existing image SHA:', finalSha);
+            }
+        } catch (error) {
+            console.log('No existing image found or error checking:', error);
+            // If we can't check or image doesn't exist, finalSha remains null
+        }
+    }
+
+    // Prepare the request body
+    const requestBody = {
+        message: isEditing ? `Update image for post: ${title}` : `Add image for post: ${title}`,
+        content: base64
+    };
+
+    // Only include SHA if we have a valid one (not null or undefined)
+    if (finalSha && finalSha !== 'null' && finalSha !== 'undefined') {
+        requestBody.sha = finalSha;
+        console.log('Using SHA for image:', finalSha);
+    } else {
+        console.log('No SHA available, creating new image file');
+    }
+
+    console.log('Image upload request body:', JSON.stringify({...requestBody, content: '[BASE64_DATA]'}, null, 2));
+
     const imageResponse = await fetch(
         `https://api.github.com/repos/${repo}/contents/${imagePath}`,
         {
@@ -1387,22 +1463,57 @@ async function uploadImageToGitHub(token, title, imageData, existingSha = null) 
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                message: isEditing ? `Update image for post: ${title}` : `Add image for post: ${title}`,
-                content: base64,
-                sha: existingSha
-            })
+            body: JSON.stringify(requestBody)
         }
     );
 
     if (!imageResponse.ok) {
         const errorData = await imageResponse.json();
+        console.error('Image upload error details:', errorData);
+        
+        // If we get a SHA error and we're trying to update, try creating as new instead
+        if (errorData.message && errorData.message.includes('sha') && finalSha) {
+            console.log('SHA error detected, retrying as new file creation...');
+            
+            // Retry without SHA to create a new file
+            const retryBody = {
+                message: `Add new image for post: ${title}`,
+                content: base64
+            };
+            
+            console.log('Retry request body:', JSON.stringify({...retryBody, content: '[BASE64_DATA]'}, null, 2));
+            
+            const retryResponse = await fetch(
+                `https://api.github.com/repos/${repo}/contents/${imagePath}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(retryBody)
+                }
+            );
+            
+            if (!retryResponse.ok) {
+                const retryErrorData = await retryResponse.json();
+                console.error('Retry failed:', retryErrorData);
+                throw new Error(`Image upload failed: ${retryErrorData.message}`);
+            }
+            
+            const retryResult = await retryResponse.json();
+            return {
+                url: `https://raw.githubusercontent.com/${repo}/main/${imagePath}`,
+                sha: retryResult.content.sha
+            };
+        }
+        
         throw new Error(`Image upload failed: ${errorData.message}`);
     }
 
     const result = await imageResponse.json();
     
-    // Return the raw GitHub URL for the image and the new SHA
     return {
         url: `https://raw.githubusercontent.com/${repo}/main/${imagePath}`,
         sha: result.content.sha
