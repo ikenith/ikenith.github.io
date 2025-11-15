@@ -1392,7 +1392,7 @@ async function savePost() {
     }
 }
 
-// Upload image to GitHub - FIXED: Proper SHA handling for new images
+// Upload image to GitHub - FIXED: Check if image exists and get SHA if needed
 async function uploadImageToGitHub(token, title, imageData, existingSha = null) {
     const repo = 'ikenith/ikenith.github.io';
     
@@ -1411,6 +1411,33 @@ async function uploadImageToGitHub(token, title, imageData, existingSha = null) 
 
     const imagePath = `images/${imageFilename}`;
 
+    // First, check if the image already exists to get its SHA
+    let finalSha = existingSha;
+    
+    // If we don't have a SHA but we're in editing mode, try to get the SHA
+    if (!finalSha && isEditing) {
+        try {
+            const checkResponse = await fetch(
+                `https://api.github.com/repos/${repo}/contents/${imagePath}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                }
+            );
+            
+            if (checkResponse.ok) {
+                const existingImageData = await checkResponse.json();
+                finalSha = existingImageData.sha;
+                console.log('Found existing image SHA:', finalSha);
+            }
+        } catch (error) {
+            console.log('No existing image found or error checking:', error);
+            // If we can't check or image doesn't exist, finalSha remains null
+        }
+    }
+
     // Prepare the request body
     const requestBody = {
         message: isEditing ? `Update image for post: ${title}` : `Add image for post: ${title}`,
@@ -1418,14 +1445,14 @@ async function uploadImageToGitHub(token, title, imageData, existingSha = null) 
     };
 
     // Only include SHA if we have a valid one (not null or undefined)
-    if (existingSha && existingSha !== 'null' && existingSha !== 'undefined') {
-        requestBody.sha = existingSha;
-        console.log('Using existing SHA for image update:', existingSha);
+    if (finalSha && finalSha !== 'null' && finalSha !== 'undefined') {
+        requestBody.sha = finalSha;
+        console.log('Using SHA for image:', finalSha);
     } else {
-        console.log('No existing SHA found, creating new image file');
+        console.log('No SHA available, creating new image file');
     }
 
-    console.log('Image upload request body:', JSON.stringify(requestBody, null, 2));
+    console.log('Image upload request body:', JSON.stringify({...requestBody, content: '[BASE64_DATA]'}, null, 2));
 
     const imageResponse = await fetch(
         `https://api.github.com/repos/${repo}/contents/${imagePath}`,
@@ -1445,7 +1472,7 @@ async function uploadImageToGitHub(token, title, imageData, existingSha = null) 
         console.error('Image upload error details:', errorData);
         
         // If we get a SHA error and we're trying to update, try creating as new instead
-        if (errorData.message && errorData.message.includes('sha') && existingSha) {
+        if (errorData.message && errorData.message.includes('sha') && finalSha) {
             console.log('SHA error detected, retrying as new file creation...');
             
             // Retry without SHA to create a new file
@@ -1454,7 +1481,7 @@ async function uploadImageToGitHub(token, title, imageData, existingSha = null) 
                 content: base64
             };
             
-            console.log('Retry request body:', JSON.stringify(retryBody, null, 2));
+            console.log('Retry request body:', JSON.stringify({...retryBody, content: '[BASE64_DATA]'}, null, 2));
             
             const retryResponse = await fetch(
                 `https://api.github.com/repos/${repo}/contents/${imagePath}`,
