@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,10 +39,10 @@
 <body class="overflow-x-hidden">
   <div id="root"></div>
   
-  <!-- Load the transpiler polyfill first -->
+  <!-- Step 1: Load the esm.sh/run script. It will automatically detect the .tsx file below. -->
   <script type="module" src="https://esm.sh/run"></script>
   
-  <!-- Then load your entry point as a standard module. esm.sh/run will intercept and transpile it. -->
+  <!-- Step 2: Load your entry point. esm.sh/run will intercept this and transpile it. -->
   <script type="module" src="./index.tsx"></script>
 <script type="module" src="/index.tsx"></script>
 </body>

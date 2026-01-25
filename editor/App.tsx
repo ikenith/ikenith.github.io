@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { LogType, ActivityLog, Draft, DraftData, Post, Toast } from './types.ts';
 import Sidebar from './components/Sidebar.tsx';
