@@ -16,39 +16,20 @@
       background-color: #0a0a0f;
       color: #e5e7eb;
     }
-    .markdown-body pre {
-      background: #18181b;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      overflow-x: auto;
-    }
-    .markdown-body code {
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .markdown-body blockquote {
-      border-left: 4px solid #3b82f6;
-      padding-left: 1rem;
-      color: #9ca3af;
-      font-style: italic;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #374151;
-      border-radius: 3px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #4b5563;
-    }
+    .markdown-body pre { background: #18181b; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    .markdown-body code { font-family: 'JetBrains Mono', monospace; }
+    .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #9ca3af; font-style: italic; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4b5563; }
   </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/"
   }
@@ -58,6 +39,12 @@
 </head>
 <body class="overflow-x-hidden">
   <div id="root"></div>
+  
+  <!-- Load the transpiler polyfill first -->
+  <script type="module" src="https://esm.sh/run"></script>
+  
+  <!-- Then load your entry point as a standard module. esm.sh/run will intercept and transpile it. -->
+  <script type="module" src="./index.tsx"></script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>
