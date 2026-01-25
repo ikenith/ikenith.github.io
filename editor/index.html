@@ -1,520 +1,63 @@
+
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Advanced Editor | The Roots</title>
-  <link rel="icon" type="image/svg+xml" href="../style/logo.svg">
-  
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  
-  <!-- External Libraries -->
+  <title>The Roots | Advanced Editor Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
-  
-  <!-- Local Styles -->
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0a0a0f;
+      color: #e5e7eb;
+    }
+    .markdown-body pre {
+      background: #18181b;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+    }
+    .markdown-body code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .markdown-body blockquote {
+      border-left: 4px solid #3b82f6;
+      padding-left: 1rem;
+      color: #9ca3af;
+      font-style: italic;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
 </head>
-<body>
-  <!-- Navigation -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="logo" onclick="window.location.href='../index.html'">
-        <img src="../style/logo.svg" alt="The Roots Logo" />
-        <span>The Roots</span>
-      </div>
-      
-      <div class="nav-links">
-        <a href="../index.html">Home</a>
-        <a href="../writings.html">Writing's</a>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Toast Messages -->
-  <div id="toast-container" class="toast-container"></div>
-
-  <main class="editor-container">
-    <!-- Sidebar Messages -->
-    <div id="message-sidebar" class="message-sidebar">
-      <div class="message-sidebar-header">
-        <h3>Notifications <span id="message-count" class="message-count">0</span></h3>
-        <div class="message-header-actions">
-          <button id="clear-all-messages" class="btn-secondary btn-small">Clear All</button>
-          <button id="close-messages" class="modal-close">&times;</button>
-        </div>
-      </div>
-      <div class="message-sidebar-content">
-        <div id="message-list" class="message-list"></div>
-      </div>
-    </div>
-
-    <!-- Main Editor -->
-    <div class="editor-wrapper">
-      <!-- Editor Header -->
-      <div class="editor-header">
-        <div class="header-left">
-          <div class="editor-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="header-title">
-            <h1>Advanced Editor</h1>
-            <div id="current-draft-indicator" class="draft-indicator hidden">
-              <span>Editing: <strong id="current-draft-title">Untitled</strong></span>
-              <button id="change-draft" class="btn-small btn-secondary">Change</button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="header-actions">
-          <button id="toggle-messages" class="btn-secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Messages
-            <span id="message-badge" class="message-badge hidden">0</span>
-          </button>
-          <button id="save-draft" class="btn-secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C19.9609 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M17 21V13H7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7 3V8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Save Draft
-          </button>
-          <button id="load-draft" class="btn-secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 20.5 19 20.5H5C4.46957 20.5 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Load Draft
-          </button>
-          <button id="load-posts" class="btn-secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/>
-              <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2"/>
-              <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/>
-              <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/>
-              <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            Load Post
-          </button>
-          <button id="toggle-preview" class="btn-secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8Z" stroke="currentColor" stroke-width="2"/>
-              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <span id="toggle-preview-text">Hide Preview</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Main Content -->
-      <div class="editor-content">
-        <!-- Left Panel - Editor -->
-        <div class="editor-panel">
-          <!-- Token Input -->
-          <div class="input-group">
-            <label for="github-token">GitHub Personal Access Token *</label>
-            <input 
-              type="password" 
-              id="github-token" 
-              class="input-field" 
-              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-              autocomplete="off"
-            />
-            <p class="input-hint">
-              🔑 Create a <strong>fine-grained token</strong> with <strong>Repository permissions: Contents (Read and Write)</strong> for repository <code>ikenith/ikenith.github.io</code>
-            </p>
-          </div>
-
-          <!-- Post Metadata -->
-          <div class="metadata-grid">
-            <div class="input-group">
-              <label for="post-title">Post Title *</label>
-              <input 
-                type="text" 
-                id="post-title" 
-                class="input-field" 
-                placeholder="Enter post title" 
-                autocomplete="off"
-              />
-            </div>
-
-            <div class="input-group">
-              <label for="post-date">Publication Date *</label>
-              <input 
-                type="date" 
-                id="post-date" 
-                class="input-field"
-              />
-            </div>
-          </div>
-
-          <!-- Current Draft Info -->
-          <div id="current-draft-info" class="draft-info hidden">
-            <div class="draft-info-content">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C19.9609 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M17 21V13H7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M7 3V8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span>Editing draft: <strong id="current-draft-name">Untitled</strong></span>
-              <button id="clear-current-draft" class="btn-small btn-secondary">Clear</button>
-            </div>
-          </div>
-
-          <!-- Post Filename (for editing) -->
-          <div class="input-group hidden" id="filename-group">
-            <label for="post-filename">Post Filename</label>
-            <input 
-              type="text" 
-              id="post-filename" 
-              class="input-field" 
-              readonly
-            />
-            <p class="input-hint">
-              📝 This is automatically generated from the title when creating new posts
-            </p>
-          </div>
-
-          <!-- Featured Image Section -->
-          <div class="input-group">
-            <label>Featured Image</label>
-            
-            <div class="image-option-tabs">
-              <div class="image-tab active" data-option="upload">📁 Upload & Crop</div>
-              <div class="image-tab" data-option="url">🔗 Image URL</div>
-              <div class="image-tab" data-option="none">🚫 No Image</div>
-            </div>
-
-            <!-- Upload & Crop Option -->
-            <div id="upload-option" class="image-option">
-              <div class="file-input-wrapper">
-                <div class="file-input-button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
-                    <line x1="16" y1="5" x2="22" y2="5"></line>
-                    <line x1="19" y1="2" x2="19" y2="8"></line>
-                    <circle cx="9" cy="9" r="2"></circle>
-                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-                  </svg>
-                  <span>Choose Image to Crop</span>
-                </div>
-                <input type="file" id="post-image" accept="image/*">
-              </div>
-              
-              <!-- Image Cropping Area -->
-              <div id="image-cropper" class="cropper-container hidden">
-                <div class="cropper-wrapper">
-                  <img id="crop-image" />
-                </div>
-                <div class="cropper-controls">
-                  <button id="crop-btn" class="btn-primary">
-                    ✅ Crop & Use Image
-                  </button>
-                  <button id="cancel-crop" class="btn-secondary">
-                    ❌ Cancel
-                  </button>
-                </div>
-              </div>
-
-              <!-- Cropped Image Preview -->
-              <div id="cropped-preview" class="hidden">
-                <label>Cropped Preview</label>
-                <img id="cropped-image" />
-                <p class="input-hint">
-                  💡 This image will be uploaded to your repository when you save the post
-                </p>
-              </div>
-            </div>
-
-            <!-- URL Option -->
-            <div id="url-option" class="image-option hidden">
-              <input 
-                type="url" 
-                id="post-image-url" 
-                class="input-field" 
-                placeholder="https://example.com/image.jpg"
-                autocomplete="off"
-              />
-              <p class="input-hint">
-                🌐 Use an external image URL from services like Imgur, Cloudinary, etc.
-              </p>
-              <img id="url-preview" class="hidden" />
-            </div>
-          </div>
-
-          <!-- Editor Toolbar -->
-          <div class="toolbar-section">
-            <label>Formatting Tools</label>
-            <div class="toolbar">
-              <div class="toolbar-group">
-                <button onclick="formatText('bold')" title="Bold">
-                  <b>B</b>
-                </button>
-                <button onclick="formatText('italic')" title="Italic">
-                  <i>I</i>
-                </button>
-                <button onclick="formatText('underline')" title="Underline">
-                  <u>U</u>
-                </button>
-              </div>
-              
-              <div class="toolbar-group">
-                <button onclick="formatText('h1')" title="Heading 1">H1</button>
-                <button onclick="formatText('h2')" title="Heading 2">H2</button>
-                <button onclick="formatText('h3')" title="Heading 3">H3</button>
-              </div>
-              
-              <div class="toolbar-group">
-                <button onclick="formatText('link')" title="Link">🔗</button>
-                <button onclick="insertImage()" title="Image">🖼️</button>
-                <button onclick="formatText('code')" title="Inline Code">`</button>
-                <button onclick="formatText('codeBlock')" title="Code Block">```</button>
-              </div>
-              
-              <div class="toolbar-group">
-                <button onclick="formatText('ul')" title="Unordered List">• List</button>
-                <button onclick="formatText('ol')" title="Ordered List">1. List</button>
-                <button onclick="formatText('quote')" title="Quote">❝</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Editor Textarea -->
-          <div class="editor-textarea-container">
-            <label for="md-input">Markdown Content *</label>
-            <textarea 
-              id="md-input" 
-              placeholder="# Welcome to your new post
-
-Write your content here using markdown...
-
-## Features
-- Easy formatting
-- Live preview
-- Image support
-
-```javascript
-// Code blocks work too!
-console.log('Hello World');
-```"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Right Panel - Preview -->
-        <div class="preview-panel" id="preview-panel">
-          <div class="preview-header">
-            <h3>Live Preview</h3>
-          </div>
-          <div class="preview-content" id="md-preview"></div>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="editor-actions">
-        <button id="save-btn" class="btn-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          <span id="save-btn-text">Publish Writing</span>
-        </button>
-        <button id="clear-btn" class="btn-secondary">
-          Clear Form
-        </button>
-        <button id="export-btn" class="btn-secondary">
-          Export Markdown
-        </button>
-        <button id="view-logs" class="btn-secondary">
-          View Logs
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <!-- Image Insert Modal -->
-  <div id="image-modal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Insert Image</h3>
-        <button id="close-modal" class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="image-option-tabs">
-          <div class="image-tab active" data-modal-option="upload">📁 Upload</div>
-          <div class="image-tab" data-modal-option="url">🔗 URL</div>
-        </div>
-        
-        <div id="modal-upload" class="image-option">
-          <div class="file-input-wrapper">
-            <input type="file" id="inline-image-upload" accept="image/*">
-            <div class="file-input-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
-                <line x1="16" y1="5" x2="22" y2="5"></line>
-                <line x1="19" y1="2" x2="19" y2="8"></line>
-                <circle cx="9" cy="9" r="2"></circle>
-                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-              </svg>
-              <span>Choose Image</span>
-            </div>
-          </div>
-          <div id="selected-image-name" class="selected-image-name"></div>
-        </div>
-        
-        <div id="modal-url" class="image-option hidden">
-          <input 
-            type="url" 
-            id="inline-image-url" 
-            class="input-field" 
-            placeholder="https://example.com/image.jpg"
-            autocomplete="off"
-          />
-        </div>
-        
-        <div class="input-group">
-          <label for="image-alt">Alt Text</label>
-          <input 
-            type="text" 
-            id="image-alt" 
-            class="input-field" 
-            placeholder="Description of the image"
-            autocomplete="off"
-          />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="insert-image" class="btn-primary">Insert Image</button>
-        <button id="cancel-image" class="btn-secondary">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Load Posts Modal -->
-  <div id="posts-modal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Load Existing Post</h3>
-        <button id="close-posts-modal" class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="input-group">
-          <label for="posts-search">Search Posts</label>
-          <input 
-            type="text" 
-            id="posts-search" 
-            class="input-field" 
-            placeholder="Search by title..."
-            autocomplete="off"
-          />
-        </div>
-        <div id="posts-list" class="posts-list">
-          <div class="loading-text">Loading posts...</div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="cancel-posts" class="btn-secondary">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Save Draft Modal -->
-  <div id="save-draft-modal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Save Draft</h3>
-        <button id="close-save-draft-modal" class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="input-group">
-          <label for="draft-name">Draft Name</label>
-          <input 
-            type="text" 
-            id="draft-name" 
-            class="input-field" 
-            placeholder="Enter a name for this draft"
-            autocomplete="off"
-          />
-          <p class="input-hint">
-            💡 Give your draft a descriptive name to easily identify it later
-          </p>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="confirm-save-draft" class="btn-primary">Save Draft</button>
-        <button id="cancel-save-draft" class="btn-secondary">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Load Draft Modal -->
-  <div id="load-draft-modal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Load Draft</h3>
-        <button id="close-load-draft-modal" class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="input-group">
-          <label for="drafts-search">Search Drafts</label>
-          <input 
-            type="text" 
-            id="drafts-search" 
-            class="input-field" 
-            placeholder="Search drafts..."
-            autocomplete="off"
-          />
-        </div>
-        <div class="drafts-actions">
-          <button id="delete-all-drafts" class="btn-secondary btn-small">Delete All Drafts</button>
-        </div>
-        <div id="drafts-list" class="drafts-list">
-          <div class="loading-text">Loading drafts...</div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="cancel-load-draft" class="btn-secondary">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Logs Modal -->
-  <div id="logs-modal" class="modal hidden">
-    <div class="modal-content modal-large">
-      <div class="modal-header">
-        <h3>Activity Logs</h3>
-        <button id="close-logs-modal" class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="logs-actions">
-          <button id="export-logs" class="btn-secondary">Export Logs</button>
-          <button id="clear-logs" class="btn-secondary">Clear Logs</button>
-        </div>
-        <div id="logs-list" class="logs-list">
-          <div class="loading-text">Loading logs...</div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="close-logs" class="btn-secondary">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Scripts -->
-  <script src="script.js"></script>
+<body class="overflow-x-hidden">
+  <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

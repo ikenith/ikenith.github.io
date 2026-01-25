@@ -1,0 +1,7 @@
+{
+  "name": "The Roots - Advanced Editor Pro",
+  "description": "A world-class React-based Markdown editor with integrated GitHub publishing, image cropping, and draft management.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
