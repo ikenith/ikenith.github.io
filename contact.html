@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KAMAL // Contact Orbit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="Explore Kamal's contact constellation and open each communication channel through an orbital interface."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="space-body">
+  <canvas id="spaceCanvas" aria-hidden="true"></canvas>
+
+  <a href="index.html" class="return return--space">&larr; return to the base</a>
+
+  <main class="space-shell">
+    <div class="space-sidebar">
+      <aside class="space-panel aux-tile" aria-live="polite" tabindex="0">
+        <p class="space-panel-label">Locked target</p>
+        <h2 id="contactTitle">Contact Constellation</h2>
+        <p class="space-panel-copy" id="contactDescription">
+          Drift through the field and choose a planet. Every planet opens one real contact route.
+        </p>
+
+        <div class="space-readout">
+          <span class="space-readout-label">Current channel</span>
+          <span class="space-readout-value" id="contactValue">No channel selected</span>
+        </div>
+
+        <div class="space-actions">
+          <button class="space-button space-button--ghost" type="button" id="contactCopy" disabled>
+            Copy contact
+          </button>
+        </div>
+      </aside>
+
+      <section class="space-copy aux-tile" aria-label="Contact overview" tabindex="0">
+        <p class="space-kicker">Outer Orbit / Contact Constellation</p>
+        <h1>Signal field active.</h1>
+        <p>
+          Select a planet to lock the target. Click or tap the planet to open its channel, or use
+          the direct links below when you want a faster route.
+        </p>
+      </section>
+
+      <nav class="space-directory aux-tile" aria-label="Direct contact links" tabindex="0">
+        <p class="space-kicker">Manual Dock / Quick Access</p>
+        <ul class="space-directory-list" id="contactDirectory">
+          <li class="space-directory-empty">Loading contact routes...</li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="space-toast" id="spaceToast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
