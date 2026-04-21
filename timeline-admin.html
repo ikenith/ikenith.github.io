@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta
     name="description"
-    content="Private publishing relay for Kamal's signal log."
+    content="Private editing relay for Kamal's quiet signal archive."
   >
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,16 +30,16 @@
   <main class="timeline-admin">
     <section class="timeline-admin__brief">
       <p class="signal-kicker">Private Relay / Signal Relay</p>
-      <h1>Publish a new signal without exposing the key on the public page.</h1>
+      <h1>Store a new signal in code without exposing the key on the public page.</h1>
       <p class="timeline-admin__intro">
-        This relay only accepts a GitHub token that belongs to the repo owner. The token is used
-        for one request, verified against your GitHub account, and then cleared from the form after
-        publishing.
+        This relay writes to <strong>data/timeline.json</strong>. The public signal log page is
+        intentionally quiet for now, so new entries stay in code until you decide to surface them
+        later.
       </p>
 
       <div class="signal-metrics" aria-label="Relay details">
         <span>Auth / GitHub owner token</span>
-        <span>Storage / in-memory only</span>
+        <span>Surface / hidden for now</span>
         <span>Target / data/timeline.json</span>
         <span>Flow / newest post first</span>
       </div>
@@ -94,14 +94,15 @@
         <p class="timeline-form__note">
           Use a fine-grained token with repository access limited to
           <strong>Contents: Read and write</strong> for <strong>ikenith/ikenith.github.io</strong>.
-          The token is never stored in local storage, cookies, or the timeline data file.
+          The token is never stored in local storage, cookies, or the timeline data file. If you
+          prefer, you can also edit <strong>data/timeline.json</strong> directly in the repo.
         </p>
 
         <div class="timeline-form__actions">
           <button class="timeline-form__submit" type="submit" id="timelinePublishButton">
             Publish signal
           </button>
-          <a class="timeline-form__link" href="timeline.html">View the public signal log</a>
+          <a class="timeline-form__link" href="timeline.html">Open the quiet public page</a>
         </div>
 
         <p class="timeline-form__status" id="timelinePublishStatus" role="status" aria-live="polite">

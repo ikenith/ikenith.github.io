@@ -12,8 +12,8 @@ const timelineUpdatedFormatter = new Intl.DateTimeFormat("en-GB", {
   year: "numeric"
 });
 
+normalizeHomeUrl();
 initCursor();
-initIndiaClock();
 initBaseInterface();
 initSpaceWorld();
 initTimelineFeed();
@@ -59,6 +59,21 @@ function encodeBase64Utf8(value) {
   });
 
   return window.btoa(binary);
+}
+
+function normalizeHomeUrl() {
+  if (!document.body || !document.body.classList.contains("base-body")) {
+    return;
+  }
+
+  const { pathname, search, hash } = window.location;
+
+  if (!pathname.endsWith("/index.html")) {
+    return;
+  }
+
+  const nextPath = pathname.slice(0, -"/index.html".length) || "/";
+  window.history.replaceState({}, document.title, `${nextPath}${search}${hash}`);
 }
 
 function getTodayInputValue() {
@@ -186,28 +201,6 @@ function initCursor() {
       visible = false;
     }
   });
-}
-
-function initIndiaClock() {
-  const timeElement = document.getElementById("indiaTime");
-  if (!timeElement) {
-    return;
-  }
-
-  const formatter = new Intl.DateTimeFormat("en-IN", {
-    timeZone: "Asia/Kolkata",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false
-  });
-
-  const updateTime = () => {
-    timeElement.textContent = formatter.format(new Date());
-  };
-
-  updateTime();
-  window.setInterval(updateTime, 1000);
 }
 
 function initBaseInterface() {
@@ -1102,15 +1095,45 @@ function getTimelineConfig() {
   };
 }
 
+function normalizeTimelineAbout(about) {
+  const source = about && typeof about === "object" && !Array.isArray(about) ? about : {};
+  const questions = Array.isArray(source.questions)
+    ? source.questions
+        .map((entry) => {
+          if (!entry || typeof entry !== "object") {
+            return null;
+          }
+
+          const question = String(entry.question || "").trim();
+          const answer = String(entry.answer || "").trim();
+
+          if (!question || !answer) {
+            return null;
+          }
+
+          return { question, answer };
+        })
+        .filter(Boolean)
+    : [];
+
+  return {
+    summary: String(source.summary || "").trim(),
+    postingNote: String(source.postingNote || "").trim(),
+    questions
+  };
+}
+
 function normalizeTimelinePayload(payload) {
-  const entriesSource = Array.isArray(payload) ? payload : payload && Array.isArray(payload.entries) ? payload.entries : [];
+  const source = payload && typeof payload === "object" && !Array.isArray(payload) ? payload : {};
+  const entriesSource = Array.isArray(payload) ? payload : Array.isArray(source.entries) ? source.entries : [];
   const entries = entriesSource
     .map((entry) => normalizeTimelineEntry(entry))
     .filter(Boolean)
     .sort(sortTimelineEntries);
 
   return {
-    updatedAt: payload && !Array.isArray(payload) ? payload.updatedAt || null : null,
+    updatedAt: source.updatedAt || null,
+    about: normalizeTimelineAbout(source.about),
     entries
   };
 }
@@ -1351,6 +1374,7 @@ async function fetchPrivateTimelineFile(config, token) {
         sha: null,
         payload: {
           updatedAt: null,
+          about: normalizeTimelineAbout(null),
           entries: []
         }
       };
@@ -1372,6 +1396,7 @@ function buildUpdatedTimelinePayload(existingPayload, nextValues) {
 
   const nextPayload = normalizeTimelinePayload({
     updatedAt: now,
+    about: existingPayload.about,
     entries: [nextEntry, ...existingPayload.entries]
   });
 

@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>KAMAL // Base Interface</title>
+  <title>ikenith.github.io</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta
     name="description"
-    content="A cinematic portfolio interface by Kamal built as an explorable digital system."
+    content="ikenith.github.io is Kamal's minimal personal space on the web."
   >
+  <link rel="canonical" href="https://ikenith.github.io/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -23,20 +24,9 @@
   <div class="vignette-layer" aria-hidden="true"></div>
   <canvas id="systemCanvas" aria-hidden="true"></canvas>
 
-  <header class="system-header">
-    <div class="system-chip aux-tile" tabindex="0">
-      <span class="chip-label">BASE INTERFACE</span>
-      <span class="chip-value">Sector 01 / Stable</span>
-    </div>
-    <div class="system-chip system-chip--right">
-      <span class="chip-label">India Standard Time</span>
-      <span class="chip-value chip-value--time" id="indiaTime">--:--:--</span>
-    </div>
-  </header>
-
   <main class="base-shell" id="baseShell">
     <section class="system-core" id="systemCore" tabindex="0" aria-label="System core">
-      <p class="core-kicker">Main system</p>
+      <p class="core-kicker">Personal Site</p>
       <h1 class="core-wordmark" aria-label="KAMAL">
         <span>K</span>
         <span>A</span>
@@ -45,55 +35,33 @@
         <span>L</span>
       </h1>
       <p class="core-copy">
-        Dark interfaces, cinematic worlds, and carefully engineered interactions that feel
-        discovered rather than delivered.
+        Built like a handful of rooms: one for quiet notes, one for
+        drifting a little further out.
       </p>
-      <div class="core-meta">
-        <span>Calm / alive</span>
-        <span>Signal depth 94%</span>
-        <span>Hold to stabilize</span>
-      </div>
     </section>
 
     <nav class="portal-dock" aria-label="Primary navigation">
       <a class="portal-card" href="timeline.html">
-        <span class="portal-index">01</span>
         <span class="portal-name">Signal Log</span>
-        <span class="portal-command">enter / signal.log</span>
-        <span class="portal-text">Read short posts, field notes, and fragments arranged in a quiet running signal log.</span>
+        <p>Quiet.</p>
       </a>
 
-      <a class="portal-card" href="contact.html">
-        <span class="portal-index">02</span>
+      <a class="portal-card" href="outer-orbit.html">
         <span class="portal-name">Outer Orbit</span>
-        <span class="portal-command">enter / contact.constellation</span>
-        <span class="portal-text">Find the contact network by navigating a drifting field of signals.</span>
+        <p>Drifting.</p>
       </a>
     </nav>
   </main>
 
-  <aside class="base-panels" aria-label="Status panels">
-    <div class="panel aux-tile" tabindex="0">
-      <span class="panel-label">Graph field</span>
-      <span class="panel-value">Listening for movement...</span>
-    </div>
-    <div class="panel aux-tile" tabindex="0">
-      <span class="panel-label">Anomaly</span>
-      <span class="panel-value panel-value--warning">None detected</span>
-    </div>
-  </aside>
-
   <section class="vault" id="signalVault" aria-hidden="true">
     <div class="vault-frame">
       <p class="vault-label">UNLISTED CHAMBER</p>
-      <h2>Signal Vault</h2>
-      <p>
-        The system only reveals this room to people who stay still long enough to be noticed.
-      </p>
-      <p class="vault-fragment">
-        "Every clean interface deserves one impossible space."
-      </p>
-      <button class="vault-close" type="button" id="vaultClose">return / base</button>
+      <h2>Contact</h2>
+      <p>A quieter route in. If you want to reach me directly, this is the room you were meant to find.</p>
+      <div class="vault-actions">
+        <a class="vault-link" href="contact.html">open / contact</a>
+        <button class="vault-close" type="button" id="vaultClose">return / base</button>
+      </div>
     </div>
   </section>
 
